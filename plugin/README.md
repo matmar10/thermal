@@ -1,13 +1,18 @@
 # Thermal Printer for Claude Code
 
-Ask Claude to print a shopping list, a to-do list, a jar label, a folder
-tab, a note, a barcode or a QR code, and it composes the print from simple
-building blocks, previews it against your paper, and sends it to your ESC/POS
-thermal printer, over the network or by USB.
+**Ask Claude. Get paper.** Say "print my shopping list" or "label the rice
+jar", and it comes out of your receipt printer, laid out for the roll that's
+loaded and previewed before a single dot is printed.
+
+Shopping and to-do lists, jar and bin labels, folder tabs, your day's agenda,
+notes, barcodes, QR codes and images, on almost any ESC/POS thermal printer,
+over the network or by USB.
 
 Give it a recipe link, a menu or pasted recipes and say "make me a shopping
 list": it merges the ingredients, sorts them by store department (produce,
 butcher, dairy, canned goods…) in walking order, and prints the list.
+
+![Prompts in Claude Code turn into a printed shopping list, a jar label and a Wi-Fi QR code](https://raw.githubusercontent.com/matmar10/thermal/main/docs/assets/hero.svg)
 
 ## Install
 
@@ -42,11 +47,12 @@ the plugin leaves them alone.
 
 ## The binary
 
-`bin/print-to-thermal` is a short shell script. On first use it downloads the
-`print-to-thermal` program for your platform from this version's GitHub release and
-refuses to run it unless its SHA-256 matches the one pinned in
-`checksums.txt`. The program is a single Rust binary with no runtime to
-install; its source is at https://github.com/matmar10/thermal.
+`bin/print-to-thermal` is a short shell script that runs the
+`print-to-thermal` program for your platform from `libexec/`. The binaries ship
+inside the plugin, so nothing is downloaded; they are copied from this
+version's GitHub release, and their SHA-256 sums are listed in `checksums.txt`.
+The program is a single Rust binary with no runtime to install; its source is
+at https://github.com/matmar10/thermal.
 
 To use a binary you built yourself, set `THERMAL_BIN=/path/to/print-to-thermal`.
 

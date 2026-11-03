@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1E2333"/><stop offset="1" stop-color="#2A3147"/>
+    </linearGradient>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+    <pattern id="zig" width="16" height="10" patternUnits="userSpaceOnUse">
+      <path d="M0 0L8 10L16 0Z" fill="#FFFFFF"/>
+    </pattern>
+  </defs>
+  <rect width="1280" height="640" fill="#1E2333"/>
+  <rect width="1280" height="640" fill="url(#bg)"/>
+
+  <!-- headline -->
+  <text x="72" y="118" font-family="ui-monospace,'SF Mono',Menlo,Consolas,monospace" font-size="64" font-weight="700" fill="#F8FAFC">thermal</text>
+  <text x="72" y="168" font-family="-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="30" fill="#CBD5E1">Ask Claude. Get paper.</text>
+  <text x="72" y="206" font-family="-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="20" fill="#94A3B8">Lists, labels, barcodes &amp; QR codes on any</text>
+  <text x="72" y="232" font-family="-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="20" fill="#94A3B8">ESC/POS receipt printer, from Claude Code.</text>
+
+  <!-- chat prompts -->
+  <g font-family="-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="21">
+    <g filter="url(#sh)">
+      <rect x="72" y="280" width="470" height="62" rx="16" fill="#334155"/>
+      <text x="96" y="319" fill="#F97316" font-family="ui-monospace,Menlo,monospace" font-weight="700">&gt;</text>
+      <text x="120" y="319" fill="#F1F5F9">print my shopping list for Saturday</text>
+    </g>
+    <g filter="url(#sh)">
+      <rect x="72" y="358" width="470" height="62" rx="16" fill="#334155"/>
+      <text x="96" y="397" fill="#F97316" font-family="ui-monospace,Menlo,monospace" font-weight="700">&gt;</text>
+      <text x="120" y="397" fill="#F1F5F9">label the rice jar, filled today</text>
+    </g>
+    <g filter="url(#sh)">
+      <rect x="72" y="436" width="470" height="62" rx="16" fill="#334155"/>
+      <text x="96" y="475" fill="#F97316" font-family="ui-monospace,Menlo,monospace" font-weight="700">&gt;</text>
+      <text x="120" y="475" fill="#F1F5F9">print the guest Wi-Fi as a QR code</text>
+    </g>
+  </g>
+  <text x="72" y="560" font-family="ui-monospace,'SF Mono',Menlo,monospace" font-size="18" fill="#64748B">/plugin install thermal-printer@thermal</text>
+
+  <!-- receipt 1: shopping list -->
+  <g transform="translate(620 70) rotate(-3)" filter="url(#sh)">
+    <rect width="200" height="380" fill="#FFFFFF"/>
+    <rect y="380" width="200" height="10" fill="url(#zig)"/>
+    <g font-family="ui-monospace,'SF Mono',Menlo,Consolas,monospace" fill="#111827">
+      <text x="100" y="44" font-size="22" font-weight="700" text-anchor="middle">SATURDAY</text>
+      <text x="100" y="68" font-size="12" text-anchor="middle" fill="#475569">Farmers market</text>
+      <text x="16" y="92" font-size="12" fill="#475569">--------------------------</text>
+      <g font-size="15">
+        <text x="16" y="124">[x] Oat milk</text>
+        <text x="16" y="154">[ ] Sourdough</text>
+        <text x="16" y="184">[ ] Lemons ..... 3</text>
+        <text x="16" y="214">[ ] Coffee beans</text>
+        <text x="16" y="244">[ ] Basil</text>
+        <text x="16" y="274">[ ] Honey</text>
+        <text x="16" y="304">[ ] Eggs ...... 12</text>
+      </g>
+      <text x="16" y="336" font-size="12" fill="#475569">--------------------------</text>
+      <text x="100" y="362" font-size="11" text-anchor="middle" fill="#94A3B8">printed by Claude</text>
+    </g>
+  </g>
+
+  <!-- receipt 2: jar label -->
+  <g transform="translate(850 110) rotate(2.5)" filter="url(#sh)">
+    <rect width="190" height="210" rx="10" fill="#FFF7ED"/>
+    <g font-family="ui-monospace,'SF Mono',Menlo,Consolas,monospace" fill="#111827" text-anchor="middle">
+      <text x="95" y="66" font-size="38" font-weight="800" letter-spacing="1">BASMATI</text>
+      <text x="95" y="94" font-size="12" fill="#475569">Filled 2026-11-01</text>
+    </g>
+    <g fill="#111827">
+      <rect x="28" y="116" width="3" height="56"/><rect x="34" y="116" width="1.5" height="56"/><rect x="38" y="116" width="4" height="56"/>
+      <rect x="45" y="116" width="1.5" height="56"/><rect x="49" y="116" width="3" height="56"/><rect x="55" y="116" width="1.5" height="56"/>
+      <rect x="59" y="116" width="4.5" height="56"/><rect x="66" y="116" width="1.5" height="56"/><rect x="70" y="116" width="3" height="56"/>
+      <rect x="76" y="116" width="1.5" height="56"/><rect x="80" y="116" width="1.5" height="56"/><rect x="84" y="116" width="4" height="56"/>
+      <rect x="91" y="116" width="1.5" height="56"/><rect x="95" y="116" width="3" height="56"/><rect x="101" y="116" width="4.5" height="56"/>
+      <rect x="108" y="116" width="1.5" height="56"/><rect x="112" y="116" width="3" height="56"/><rect x="118" y="116" width="1.5" height="56"/>
+      <rect x="122" y="116" width="1.5" height="56"/><rect x="126" y="116" width="4" height="56"/><rect x="133" y="116" width="3" height="56"/>
+      <rect x="139" y="116" width="1.5" height="56"/><rect x="143" y="116" width="4.5" height="56"/><rect x="150" y="116" width="1.5" height="56"/>
+      <rect x="154" y="116" width="3" height="56"/><rect x="160" y="116" width="1.5" height="56"/>
+    </g>
+    <text x="95" y="190" font-family="ui-monospace,Menlo,monospace" font-size="11" text-anchor="middle" fill="#475569">PANTRY-014</text>
+  </g>
+
+  <!-- receipt 3: wifi QR -->
+  <g transform="translate(1065 80) rotate(-2)" filter="url(#sh)">
+    <rect width="160" height="250" fill="#FFFFFF"/>
+    <rect y="250" width="160" height="10" fill="url(#zig)"/>
+    <g font-family="ui-monospace,'SF Mono',Menlo,Consolas,monospace" fill="#111827" text-anchor="middle">
+      <text x="80" y="36" font-size="18" font-weight="700">GUEST WI-FI</text>
+      <text x="80" y="222" font-size="11" fill="#475569">scan to join</text>
+    </g>
+    <g transform="translate(25 54)" fill="#111827">
+      <rect width="110" height="110" fill="#FFFFFF"/>
+      <rect x="0" y="0" width="32" height="32"/><rect x="5" y="5" width="22" height="22" fill="#fff"/><rect x="10" y="10" width="12" height="12"/>
+      <rect x="78" y="0" width="32" height="32"/><rect x="83" y="5" width="22" height="22" fill="#fff"/><rect x="88" y="10" width="12" height="12"/>
+      <rect x="0" y="78" width="32" height="32"/><rect x="5" y="83" width="22" height="22" fill="#fff"/><rect x="10" y="88" width="12" height="12"/>
+      <rect x="40" y="2" width="6" height="6"/><rect x="52" y="8" width="6" height="12"/><rect x="64" y="2" width="6" height="6"/>
+      <rect x="40" y="20" width="12" height="6"/><rect x="58" y="26" width="6" height="6"/><rect x="2" y="40" width="12" height="6"/>
+      <rect x="20" y="46" width="6" height="12"/><rect x="40" y="40" width="6" height="6"/><rect x="52" y="44" width="12" height="6"/>
+      <rect x="70" y="40" width="6" height="12"/><rect x="84" y="42" width="12" height="6"/><rect x="100" y="48" width="6" height="12"/>
+      <rect x="40" y="56" width="12" height="6"/><rect x="62" y="58" width="6" height="6"/><rect x="80" y="60" width="6" height="12"/>
+      <rect x="2" y="62" width="6" height="6"/><rect x="14" y="66" width="12" height="6"/><rect x="40" y="70" width="6" height="12"/>
+      <rect x="52" y="74" width="12" height="6"/><rect x="92" y="72" width="12" height="6"/><rect x="44" y="90" width="6" height="12"/>
+      <rect x="56" y="86" width="6" height="6"/><rect x="66" y="96" width="12" height="6"/><rect x="84" y="86" width="6" height="12"/>
+      <rect x="98" y="92" width="12" height="6"/><rect x="52" y="104" width="6" height="6"/><rect x="88" y="104" width="12" height="6"/>
+      <rect x="70" y="80" width="6" height="6"/><rect x="100" y="80" width="6" height="6"/>
+    </g>
+  </g>
+
+  <!-- printer -->
+  <g transform="translate(700 470)" filter="url(#sh)">
+    <rect width="500" height="110" rx="30" fill="#E2E8F0"/>
+    <rect x="40" y="28" width="420" height="16" rx="8" fill="#1E2333"/>
+    <circle cx="450" cy="78" r="10" fill="#F97316"/>
+    <rect x="40" y="70" width="120" height="14" rx="7" fill="#CBD5E1"/>
+  </g>
+</svg>
