@@ -1,7 +1,7 @@
 ---
 name: grocery-list
 description: Turn recipes or a menu into a shopping list grouped by grocery store department (produce, bakery, deli, butcher, seafood, dairy, canned goods, dry goods, baking, spices, frozen...) in walking order, with duplicate ingredients merged, then print it on the thermal receipt printer. Takes a recipe or menu URL, pasted recipe text, or several of them at once. TRIGGER when the user asks for a shopping or grocery list from a recipe, menu, meal plan or link, asks "what do I need to buy for...", or wants a recipe's ingredients printed.
-allowed-tools: Bash(print-to-thermal *), WebFetch
+allowed-tools: Bash(print-to-thermal *)
 ---
 
 # Grocery list from recipes
@@ -13,9 +13,11 @@ printer is not set up: follow that skill's first-run setup before printing.
 
 ## 1. Get the ingredients
 
-- **Recipe URL:** fetch it. Most recipe sites embed `schema.org/Recipe`
-  JSON-LD, and its `recipeIngredient` array is the most reliable ingredient
-  list, so look for that first and use the page text only if it's missing.
+- **Recipe URL:** fetch it. The skill doesn't pre-approve web fetches, so
+  the user approves each one when prompted. Most recipe sites embed
+  `schema.org/Recipe` JSON-LD, and its `recipeIngredient` array is the most
+  reliable ingredient list, so look for that first and use the page text only
+  if it's missing.
   Also note `name` (the dish name) and `recipeYield`.
 - **Menu URL or meal plan** (a list of dishes, not recipes): work out a
   typical ingredient list for each dish. Tell the user these are your
@@ -23,8 +25,9 @@ printer is not set up: follow that skill's first-run setup before printing.
 - **Pasted text:** use it as given.
 - **Several sources:** handle each one, remembering which dish each
   ingredient came from.
-- If a page refuses the fetch, is paywalled or needs a login, ask the user to
-  paste the recipe. Don't retry it or try other routes to the same page.
+- If the user declines the fetch, or a page refuses it, is paywalled or needs
+  a login, ask the user to paste the recipe. Don't retry it or try other
+  routes to the same page.
 
 If the user asks for more or fewer servings, scale the amounts before merging.
 
