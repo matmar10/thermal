@@ -1,0 +1,14 @@
+{
+  "description": "A short note or reminder: optional bold heading, body text, optional footer.",
+  "params": {
+    "body": "The note text; newlines are kept",
+    "heading": "Optional heading",
+    "footer": "Optional footer, e.g. who it is from or the date"
+  },
+  "defaults": { "heading": "", "footer": "" },
+  "blocks": [
+    { "type": "text", "text": "{{heading}}", "size": 2, "bold": true },
+    { "type": "text", "text": "{{body}}" },
+    { "type": "text", "text": "{{footer}}", "align": "right" }
+  ]
+}

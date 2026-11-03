@@ -1,0 +1,30 @@
+{
+  "name": "thermal-printer",
+  "displayName": "Thermal Printer",
+  "version": "0.1.0",
+  "description": "Print lists, labels, notes, barcodes, QR codes and images on an ESC/POS thermal receipt or label printer. Claude composes each print from simple building blocks, checks it against your paper, then sends it over the network or USB.",
+  "author": {
+    "name": "matmar10",
+    "url": "https://github.com/matmar10"
+  },
+  "homepage": "https://github.com/matmar10/thermal",
+  "repository": "https://github.com/matmar10/thermal",
+  "license": "MIT",
+  "keywords": [
+    "printer",
+    "thermal",
+    "receipt",
+    "label",
+    "esc-pos",
+    "barcode",
+    "qr"
+  ],
+  "userConfig": {
+    "printer": {
+      "type": "string",
+      "title": "Printer connection (optional)",
+      "description": "How to reach the printer: tcp://192.168.1.50:9100 for a network printer, cups:<queue name> for a USB printer set up in CUPS, or a device path like /dev/usb/lp0. Leave blank and Claude will help you find it.",
+      "required": false
+    }
+  }
+}

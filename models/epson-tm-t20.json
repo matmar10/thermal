@@ -1,0 +1,14 @@
+{
+  "name": "Epson TM-T20 (II/III)",
+  "paper_mm": 80,
+  "dots_per_mm": 8,
+  "carriage_dots": 576,
+  "cell_dots": 12,
+  "line_dots": 30,
+  "max_text_size": 8,
+  "dead_zone_mm": 0,
+  "cutter": "partial",
+  "qr": "native",
+  "status": true,
+  "notes": ["203dpi, 72mm print width on 80mm paper; takes 58mm paper with the roll guide fitted."]
+}

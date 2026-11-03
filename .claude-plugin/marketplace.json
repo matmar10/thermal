@@ -1,0 +1,15 @@
+{
+  "name": "thermal",
+  "description": "Thermal receipt and label printing for Claude Code.",
+  "owner": {
+    "name": "matmar10",
+    "url": "https://github.com/matmar10"
+  },
+  "plugins": [
+    {
+      "name": "thermal-printer",
+      "source": "./plugin",
+      "description": "Print lists, labels, notes, barcodes and QR codes on an ESC/POS thermal printer."
+    }
+  ]
+}

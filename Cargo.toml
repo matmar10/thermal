@@ -1,0 +1,26 @@
+[package]
+name = "thermal"
+version = "0.1.0"
+edition = "2021"
+description = "Compose and print jobs on ESC/POS thermal printers: CLI and HTTP server."
+license = "MIT"
+publish = false
+
+[[bin]]
+name = "thermal"
+path = "src/main.rs"
+
+[dependencies]
+ab_glyph = "0.2"
+base64 = "0.22"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }
+qrcode = { version = "0.14.1", default-features = false }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+serde_yaml = "0.9"
+tiny_http = "0.12"
+
+[profile.release]
+lto = true
+strip = true
+codegen-units = 1

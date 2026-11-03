@@ -1,0 +1,18 @@
+{
+  "name": "Generic 58mm ESC/POS printer",
+  "paper_mm": 58,
+  "dots_per_mm": 8,
+  "carriage_dots": 384,
+  "cell_dots": 12,
+  "line_dots": 30,
+  "max_text_size": 4,
+  "dead_zone_mm": 0,
+  "cutter": "none",
+  "qr": "raster",
+  "status": true,
+  "notes": [
+    "Fits most 203dpi 58mm printers, including small portable ones. Most have a tear bar, not a cutter.",
+    "QR codes are sent as images because many 58mm printers lack the native QR command. Try `thermal set qr native` if yours has it.",
+    "Run `thermal calibrate` to measure the real print width."
+  ]
+}

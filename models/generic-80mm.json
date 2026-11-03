@@ -1,0 +1,18 @@
+{
+  "name": "Generic 80mm ESC/POS printer",
+  "paper_mm": 80,
+  "dots_per_mm": 8,
+  "carriage_dots": 576,
+  "cell_dots": 12,
+  "line_dots": 30,
+  "max_text_size": 4,
+  "dead_zone_mm": 0,
+  "cutter": "partial",
+  "qr": "native",
+  "status": true,
+  "notes": [
+    "Fits most 203dpi 80mm receipt printers (Epson-compatible clones: Xprinter, Rongta, Munbyn, HOIN, ...).",
+    "Text size is capped at 4x to be safe; many printers go to 8x. Try `thermal set max_text_size 8` and a test print.",
+    "Run `thermal calibrate` to measure the real print width."
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "Milestone MHT-P80E",
+  "paper_mm": 80,
+  "dots_per_mm": 8,
+  "carriage_dots": 576,
+  "cell_dots": 12,
+  "line_dots": 30,
+  "max_text_size": 4,
+  "dead_zone_mm": 7.5,
+  "cutter": "partial",
+  "qr": "native",
+  "status": true,
+  "notes": [
+    "Verified on paper: 48/24/16/12 columns at 1-4x on 80mm; 60mm rolls print 384 dots.",
+    "Built-in text sizes above 4x are clamped by the firmware. Use a `big` block for anything larger.",
+    "The ~7.5mm blank at the leading edge of every label is mechanical (the cutter sits past the print head)."
+  ]
+}

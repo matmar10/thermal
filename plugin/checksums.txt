@@ -1,0 +1,1 @@
+# sha256  asset — written by `make checksums` from the release SHA256SUMS

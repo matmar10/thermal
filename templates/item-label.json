@@ -1,0 +1,17 @@
+{
+  "description": "Stick-on label for a jar, bin or box: a big title, optional detail and date lines, and an optional barcode.",
+  "params": {
+    "title": "Main text, printed large",
+    "detail": "Optional smaller line(s) under the title",
+    "date": "Optional date line, e.g. \"Filled 2026-11-01\"",
+    "code": "Optional CODE128 barcode data"
+  },
+  "defaults": { "detail": "", "date": "", "code": "" },
+  "blocks": [
+    { "type": "space", "mm": 1 },
+    { "type": "big", "text": "{{title}}", "height": 8 },
+    { "type": "text", "text": "{{detail}}", "align": "center" },
+    { "type": "text", "text": "{{date}}", "align": "center" },
+    { "type": "barcode", "data": "{{code}}", "height": 7 }
+  ]
+}

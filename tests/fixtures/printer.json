@@ -1,0 +1,55 @@
+{
+  "printer": {
+    "model": "mht-p80e",
+    "connection": "tcp://127.0.0.1:9"
+  },
+  "stocks": {
+    "receipt-80": {
+      "description": "80mm plain receipt roll, continuous, non-adhesive",
+      "width_mm": 80,
+      "print_dots": 576,
+      "adhesive": false,
+      "uses": [
+        "shopping lists",
+        "recipes",
+        "menus",
+        "notes",
+        "anything long"
+      ],
+      "notes": [
+        "Calibration strip verified on paper 2026-11-01: 48/24/16/12 cols at 1-4x with all four sizes distinct; bold, underline, invert, hanging-indent wrap, rows, big text (including the degree sign and 1/2), CODE128 and QR all print correctly."
+      ]
+    },
+    "label-60-adhesive": {
+      "description": "60mm adhesive roll (manila-folder labels, stick-on labels)",
+      "width_mm": 60,
+      "print_dots": 384,
+      "adhesive": true,
+      "uses": [
+        "manila folder tabs",
+        "jar and bin labels",
+        "anything that must stick"
+      ],
+      "notes": [
+        "Print area measured at 384 dots, not derived from the 60mm width.",
+        "Folder tabs: 3x down to 2x, at most 2 lines, verified on real folders."
+      ]
+    },
+    "label-60-plain": {
+      "description": "60mm non-adhesive roll (hanging-folder tab inserts)",
+      "width_mm": 60,
+      "print_dots": 384,
+      "adhesive": false,
+      "uses": [
+        "hanging folder tab inserts",
+        "tags",
+        "short notes"
+      ],
+      "notes": [
+        "Print area measured at 384 dots.",
+        "Hanging-folder tabs: 2x, at most 2 lines, verified on real folders."
+      ]
+    }
+  },
+  "loaded": "receipt-80"
+}

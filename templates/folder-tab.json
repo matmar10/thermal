@@ -1,0 +1,11 @@
+{
+  "description": "Folder tab label: bold, centred, at most 2 lines. Size 2 suits most tabs and hanging-folder inserts; size 3 suits wide manila tabs. Print on a narrow roll.",
+  "params": {
+    "text": "The tab text",
+    "size": "Glyph size, 2 or 3 (default 2); see `thermal stocks` for characters per line"
+  },
+  "defaults": { "size": 2 },
+  "blocks": [
+    { "type": "text", "text": "{{text}}", "size": "{{size}}", "bold": true, "align": "center" }
+  ]
+}

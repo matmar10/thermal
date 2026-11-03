@@ -1,0 +1,57 @@
+# Tag vX.Y.Z (matching Cargo.toml and plugin/.claude-plugin/plugin.json) to
+# build every platform's binary and publish them with SHA256SUMS. Then run
+# `make checksums` and commit plugin/checksums.txt so the launcher can verify them.
+name: release
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: write
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - { os: macos-14, target: aarch64-apple-darwin, asset: thermal-darwin-arm64 }
+          - { os: macos-14, target: x86_64-apple-darwin, asset: thermal-darwin-x86_64 }
+          - { os: ubuntu-latest, target: x86_64-unknown-linux-musl, asset: thermal-linux-x86_64 }
+          - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-musl, asset: thermal-linux-arm64 }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc, asset: thermal-windows-x86_64.exe }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - if: contains(matrix.target, 'musl')
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+      - run: cargo test --release
+        if: "!contains(matrix.target, 'x86_64-apple')"
+      - run: cargo build --release --target ${{ matrix.target }}
+      - shell: bash
+        run: |
+          src=target/${{ matrix.target }}/release/thermal
+          [ -f "$src.exe" ] && src="$src.exe"
+          mkdir -p dist && cp "$src" "dist/${{ matrix.asset }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: dist/${{ matrix.asset }}
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Versions match the tag
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          grep -q "^version = \"$v\"" Cargo.toml
+          grep -q "\"version\": \"$v\"" plugin/.claude-plugin/plugin.json
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - run: cd dist && sha256sum thermal-* > SHA256SUMS && cat SHA256SUMS
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --title "$GITHUB_REF_NAME" --generate-notes

@@ -1,0 +1,13 @@
+{
+  "description": "Wall label for today: the day of the week as large as the roll allows, the full date beneath.",
+  "params": {
+    "day": "Day of the week, e.g. WEDNESDAY",
+    "date": "The date, e.g. 1 November 2026"
+  },
+  "feed": 4,
+  "blocks": [
+    { "type": "big", "text": "{{day}}", "fit": true },
+    { "type": "space" },
+    { "type": "big", "text": "{{date}}", "height": 5 }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "Epson TM-T88 (V/VI/VII)",
+  "paper_mm": 80,
+  "dots_per_mm": 7.1,
+  "carriage_dots": 512,
+  "cell_dots": 12,
+  "line_dots": 30,
+  "max_text_size": 8,
+  "dead_zone_mm": 0,
+  "cutter": "partial",
+  "qr": "native",
+  "status": true,
+  "notes": ["180dpi, 72mm print width (512 dots) on 80mm paper."]
+}

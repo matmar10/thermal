@@ -1,0 +1,17 @@
+{
+  "description": "Checklist of items to buy, one checkbox per item, on the receipt roll.",
+  "params": {
+    "items": "Array of item strings (or newline-separated text)",
+    "title": "Heading, e.g. the store name (default \"Shopping list\")",
+    "note": "Optional line under the heading, e.g. the date"
+  },
+  "defaults": { "title": "Shopping list", "note": "" },
+  "blocks": [
+    { "type": "text", "text": "{{title}}", "size": 2, "bold": true, "align": "center" },
+    { "type": "text", "text": "{{note}}", "align": "center" },
+    { "type": "rule" },
+    { "type": "each", "items": "{{items}}", "blocks": [
+      { "type": "text", "text": "{{item}}", "bullet": "[ ] " }
+    ] }
+  ]
+}
