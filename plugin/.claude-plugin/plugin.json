@@ -1,7 +1,7 @@
 {
   "name": "thermal-printer",
   "displayName": "Thermal Printer",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Print lists, labels, notes, barcodes, QR codes and images on an ESC/POS thermal receipt or label printer. Claude composes each print from simple building blocks, checks it against your paper, then sends it over the network or USB.",
   "author": {
     "name": "matmar10",
