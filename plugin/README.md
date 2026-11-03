@@ -5,6 +5,10 @@ tab, a note, a barcode or a QR code, and it composes the print from simple
 building blocks, previews it against your paper, and sends it to your ESC/POS
 thermal printer, over the network or by USB.
 
+Give it a recipe link, a menu or pasted recipes and say "make me a shopping
+list": it merges the ingredients, sorts them by store department (produce,
+butcher, dairy, canned goods…) in walking order, and prints the list.
+
 ## Install
 
 ```
