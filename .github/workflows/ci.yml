@@ -8,8 +8,10 @@ jobs:
   # and on every OS it runs on.
   python:
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        # ubuntu-24.04, not latest: setup-python has no 3.9 for newer Ubuntu.
+        os: [ubuntu-24.04, macos-latest, windows-latest]
         python: ["3.9", "3.13"]
     runs-on: ${{ matrix.os }}
     steps:
