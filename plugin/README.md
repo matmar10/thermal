@@ -46,6 +46,11 @@ install; its source is at https://github.com/matmar10/thermal.
 
 To use a binary you built yourself, set `THERMAL_BIN=/path/to/print-to-thermal`.
 
+## Privacy
+
+Collects nothing. Print jobs go only to the printer you configure. See the
+[privacy policy](https://github.com/matmar10/thermal/blob/main/PRIVACY.md).
+
 ## License
 
 MIT. The embedded DejaVu Sans Mono font is under its own license; see

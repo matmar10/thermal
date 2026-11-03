@@ -52,4 +52,4 @@ Fill in `carriage_dots` from the spec sheet (print width in mm × dots per mm),
 the cutter (`none`, `partial`, `full`), and whether the printer has native QR
 (`GS ( k`). Measure the width with `print-to-thermal calibrate` before trusting it.
 
-MIT licensed.
+MIT licensed. Collects no data; see the [privacy policy](PRIVACY.md).
