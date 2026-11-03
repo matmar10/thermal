@@ -1,6 +1,6 @@
 [package]
 name = "thermal"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Compose and print jobs on ESC/POS thermal printers: CLI and HTTP server."
 license = "MIT"

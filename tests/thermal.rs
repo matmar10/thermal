@@ -295,7 +295,7 @@ fn device_transport_writes_the_bytes() {
     let out = dir.join("out.bin");
     std::fs::write(&out, b"").unwrap();
     let mut c = config();
-    c.printer.connection = out.display().to_string();
+    c.printer.connection = format!("file:{}", out.display());
     let p = prepare(json!({ "blocks": [{ "type": "text", "text": "hi" }] }), None).unwrap();
     let (report, bytes) = ops::print(&c, &p, false, false).unwrap();
     assert!(report.sent);
