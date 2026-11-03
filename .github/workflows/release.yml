@@ -1,15 +1,53 @@
-# Tag vX.Y.Z (matching Cargo.toml and plugin/.claude-plugin/plugin.json) to
-# build every platform's binary and publish them with SHA256SUMS. The vendor
-# job then commits them to main in plugin/libexec/, with plugin/checksums.txt,
-# so the plugin ships the new binaries.
+# Releases are cut by a version bump on main, never by pushing a tag by hand:
+# `make release VERSION=X.Y.Z` bumps Cargo.toml and plugin.json and pushes.
+# When main's version has no release yet, this workflow builds every
+# platform's binary, publishes them with SHA256SUMS under tag vX.Y.Z (created
+# here, on the commit that was built), and the vendor job commits them to main
+# in plugin/libexec/ with plugin/checksums.txt so the plugin ships them.
 name: release
 on:
   push:
-    tags: ["v*"]
+    branches: [main]
+    paths: [Cargo.toml, plugin/.claude-plugin/plugin.json]
+  workflow_dispatch:
 permissions:
   contents: write
+concurrency:
+  group: release
+  cancel-in-progress: false
 jobs:
+  # Decide before building anything: is there a new, consistent version?
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      release: ${{ steps.v.outputs.release }}
+      tag: ${{ steps.v.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: v
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n 1)
+          p=$(sed -n 's/^ *"version": *"\([^"]*\)".*/\1/p' plugin/.claude-plugin/plugin.json | head -n 1)
+          [ "$v" = "$p" ] || { echo "::error::Cargo.toml is $v but plugin.json is $p; bump both (make release VERSION=X.Y.Z)"; exit 1; }
+          tag="v$v"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "$tag is already released; nothing to do"
+            echo "release=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            at=$(git rev-parse "$tag^{commit}")
+            [ "$at" = "$GITHUB_SHA" ] || { echo "::error::tag $tag already exists at $at, not at this commit $GITHUB_SHA. Tags are created by this workflow; delete the stray one (git push origin :refs/tags/$tag) and re-run."; exit 1; }
+          fi
+          echo "release=true" >> "$GITHUB_OUTPUT"
   build:
+    needs: check
+    if: needs.check.outputs.release == 'true'
     strategy:
       matrix:
         include:
@@ -39,27 +77,25 @@ jobs:
           name: ${{ matrix.asset }}
           path: dist/${{ matrix.asset }}
   publish:
-    needs: build
+    needs: [check, build]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Versions match the tag
-        run: |
-          v="${GITHUB_REF_NAME#v}"
-          grep -q "^version = \"$v\"" Cargo.toml
-          grep -q "\"version\": \"$v\"" plugin/.claude-plugin/plugin.json
       - uses: actions/download-artifact@v4
         with:
           path: dist
           merge-multiple: true
       - run: cd dist && sha256sum print-to-thermal-* > SHA256SUMS && cat SHA256SUMS
+      # Creates the tag on exactly the commit that was built.
       - env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/* --title "$GITHUB_REF_NAME" --generate-notes
+          TAG: ${{ needs.check.outputs.tag }}
+        run: gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$TAG" --generate-notes
   # Bundle the released binaries into the plugin on main (what `make vendor` does).
   vendor:
-    needs: publish
+    needs: [check, publish]
     runs-on: ubuntu-latest
+    env:
+      TAG: ${{ needs.check.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -68,9 +104,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           rm -rf plugin/libexec && mkdir -p plugin/libexec
-          gh release download "$GITHUB_REF_NAME" --dir plugin/libexec --pattern 'print-to-thermal-*' --pattern SHA256SUMS
+          gh release download "$TAG" --dir plugin/libexec --pattern 'print-to-thermal-*' --pattern SHA256SUMS
           (cd plugin/libexec && sha256sum -c SHA256SUMS)
-          printf '# sha256  binary in libexec/ for %s, from the release SHA256SUMS (`make vendor`)\n' "$GITHUB_REF_NAME" > plugin/checksums.txt
+          printf '# sha256  binary in libexec/ for %s, from the release SHA256SUMS (`make vendor`)\n' "$TAG" > plugin/checksums.txt
           cat plugin/libexec/SHA256SUMS >> plugin/checksums.txt && rm plugin/libexec/SHA256SUMS
           chmod +x plugin/libexec/print-to-thermal-*
       - name: Commit to main
@@ -79,6 +115,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add plugin/libexec plugin/checksums.txt
           if git diff --cached --quiet; then echo "already vendored"; exit 0; fi
-          git commit -m "Vendor $GITHUB_REF_NAME binaries into the plugin"
+          git commit -m "Vendor $TAG binaries into the plugin"
           git pull --rebase origin main
           git push origin HEAD:main

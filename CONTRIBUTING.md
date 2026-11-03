@@ -36,16 +36,20 @@ the cutter (`none`, `partial`, `full`), and whether the printer has native QR
 
 ## Release
 
-1. Bump `version` in `Cargo.toml` and `plugin/.claude-plugin/plugin.json`. A
-   test fails if they differ.
-2. Commit, tag `vX.Y.Z` and push the tag. The release workflow builds macOS
-   (arm64 and x86_64), Linux (musl, x86_64 and arm64) and Windows binaries,
-   and publishes them with `SHA256SUMS`.
-3. The workflow's `vendor` job then commits the release binaries to `main` in
-   `plugin/libexec/`, checked against the release `SHA256SUMS`, along with
-   `plugin/checksums.txt`. Until that commit lands, the plugin still ships the
-   previous version's binaries. If the job fails, run `make vendor` locally
-   and commit the same two paths.
+1. On a clean `main`, run `make release VERSION=X.Y.Z`. It bumps `Cargo.toml`
+   and `plugin/.claude-plugin/plugin.json`, runs the tests, commits
+   `Release vX.Y.Z` and pushes. Don't push a tag yourself.
+2. The release workflow sees a version on `main` with no release yet. It
+   builds macOS (arm64 and x86_64), Linux (musl, x86_64 and arm64) and Windows
+   binaries, then publishes them with `SHA256SUMS`, creating the tag
+   `vX.Y.Z` on the commit it built.
+3. Its `vendor` job commits the binaries to `main` in `plugin/libexec/`,
+   checked against `SHA256SUMS`, with `plugin/checksums.txt`. Until that
+   commit lands, the plugin still ships the previous version's binaries. If
+   the job fails, run `make vendor` and commit those two paths.
+
+If a release run fails, fix it and re-run it from the Actions tab (it can
+also be started by hand there).
 
 CI checks on every push that each file in `plugin/libexec/` matches
 `plugin/checksums.txt` and that the launcher never downloads anything.
