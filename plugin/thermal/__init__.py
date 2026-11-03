@@ -12,4 +12,4 @@ the preview cannot disagree about where a line wraps.
 Standard library only (Python 3.9+), so it runs anywhere Python does.
 """
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
