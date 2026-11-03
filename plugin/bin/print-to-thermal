@@ -1,5 +1,5 @@
 #!/bin/sh
-# Runs the native `thermal` binary for this machine. The first run downloads
+# Runs the native `print-to-thermal` binary for this machine. The first run downloads
 # it from the GitHub release matching this plugin's version and checks it
 # against the SHA-256 pinned in ../checksums.txt; it is never run unchecked.
 # Source: https://github.com/matmar10/thermal
@@ -15,7 +15,7 @@ if [ -n "${THERMAL_BIN:-}" ]; then
 fi
 
 die() {
-  echo "thermal: $*" >&2
+  echo "print-to-thermal: $*" >&2
   exit 1
 }
 
@@ -33,7 +33,7 @@ case "$(uname -m)" in
   x86_64 | amd64) arch=x86_64 ;;
   *) die "no prebuilt binary for $(uname -m); build from source: https://github.com/$REPO" ;;
 esac
-asset="thermal-$os-$arch"
+asset="print-to-thermal-$os-$arch"
 [ "$os" = windows ] && asset="$asset.exe"
 
 data="${CLAUDE_PLUGIN_DATA:-${XDG_DATA_HOME:-$HOME/.local/share}/thermal}"
@@ -46,7 +46,7 @@ if [ ! -x "$bin" ]; then
   mkdir -p "$data/$version"
   tmp="$bin.download.$$"
   trap 'rm -f "$tmp"' EXIT
-  echo "thermal: fetching $asset $version (once)..." >&2
+  echo "print-to-thermal: fetching $asset $version (once)..." >&2
   curl -fsSL --retry 2 -o "$tmp" "https://github.com/$REPO/releases/download/v$version/$asset" || die "download failed"
   if command -v sha256sum >/dev/null 2>&1; then
     actual=$(sha256sum "$tmp" | cut -d ' ' -f 1)

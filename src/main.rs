@@ -11,33 +11,33 @@ use thermal::server::{self, ServeOptions};
 use thermal::{transport, OPENAPI_YAML};
 
 const USAGE: &str = "\
-thermal: print jobs on an ESC/POS thermal printer, from the CLI or over HTTP
+print-to-thermal: print jobs on an ESC/POS thermal printer, from the CLI or over HTTP
 
 USAGE
-  thermal preview <job> [options]   show the job as it will come off the roll
-  thermal print   <job> [options]   check stock and paper, then send it
-  thermal stocks                    printer limits, stocks, columns per size, loaded stock
-  thermal stock <id>                record which roll is loaded
-  thermal stock add id=WIDTH_MM[:DOTS][:adhesive]
-  thermal stock rm <id>
-  thermal status                    paper sensor: ok, low, out or unknown
+  print-to-thermal preview <job> [options]   show the job as it will come off the roll
+  print-to-thermal print   <job> [options]   check stock and paper, then send it
+  print-to-thermal stocks                    printer limits, stocks, columns per size, loaded stock
+  print-to-thermal stock <id>                record which roll is loaded
+  print-to-thermal stock add id=WIDTH_MM[:DOTS][:adhesive]
+  print-to-thermal stock rm <id>
+  print-to-thermal status                    paper sensor: ok, low, out or unknown
 
 SETUP
-  thermal config                    the resolved configuration (exit 3 if there is none)
-  thermal discover [--scan]         CUPS queues, USB/serial devices; --scan also looks
-                                    for port 9100 on the local network
-  thermal models                    printer presets
-  thermal setup --printer CONN --model ID [--stock id=WIDTH_MM[:DOTS][:adhesive] ...] [--force]
-                                    write printer.json; CONN is tcp://host:9100,
-                                    cups:<queue> or a device path like /dev/usb/lp0
-  thermal calibrate [--dry-run]     print a ruler; the last number fully on the paper
-                                    is that roll's width in dots
-  thermal set <key> <value>         change one printer setting (e.g. connection, qr, cutter)
+  print-to-thermal config                    the resolved configuration (exit 3 if there is none)
+  print-to-thermal discover [--scan]         CUPS queues, USB/serial devices; --scan also looks
+                                             for port 9100 on the local network
+  print-to-thermal models                    printer presets
+  print-to-thermal setup --printer CONN --model ID [--stock id=WIDTH_MM[:DOTS][:adhesive] ...] [--force]
+                                             write printer.json; CONN is tcp://host:9100,
+                                             cups:<queue> or a device path like /dev/usb/lp0
+  print-to-thermal calibrate [--dry-run]     print a ruler; the last number fully on the paper
+                                             is that roll's width in dots
+  print-to-thermal set <key> <value>         change one printer setting (e.g. connection, qr, cutter)
 
-  thermal templates [name]          list templates, or show one
-  thermal serve [--bind ADDR] [--token T] [--allow IP,IP]
-                                    run the HTTP API (default 0.0.0.0:8631)
-  thermal openapi [--json]          print the OpenAPI spec
+  print-to-thermal templates [name]          list templates, or show one
+  print-to-thermal serve [--bind ADDR] [--token T] [--allow IP,IP]
+                                             run the HTTP API (default 0.0.0.0:8631)
+  print-to-thermal openapi [--json]          print the OpenAPI spec
 
 <job> is a .json file, - for stdin, inline JSON ('{...}'), or a template name.
 
@@ -140,30 +140,30 @@ fn run(raw: Vec<String>) -> Result<()> {
             send(&args, &ruler, &prepared, true)?;
             if !args.has("--dry-run") {
                 println!("Read the last number fully on the paper: that is the roll's width in dots.");
-                println!("Record it: thermal stock add <id>=<width_mm>:<dots>[:adhesive]");
+                println!("Record it: print-to-thermal stock add <id>=<width_mm>:<dots>[:adhesive]");
             }
             Ok(())
         }
         "stocks" => out_json(&ops::stocks(&config::load(&home)?)),
         "stock" => match args.positional.get(1).map(String::as_str) {
             Some("add") => {
-                let spec = args.positional.get(2).ok_or_else(|| Error::bad("usage: thermal stock add id=WIDTH_MM[:DOTS][:adhesive]"))?;
+                let spec = args.positional.get(2).ok_or_else(|| Error::bad("usage: print-to-thermal stock add id=WIDTH_MM[:DOTS][:adhesive]"))?;
                 out_json(&ops::stocks(&config::add_stock(&home, spec)?))
             }
             Some("rm") => {
-                let id = args.positional.get(2).ok_or_else(|| Error::bad("usage: thermal stock rm <id>"))?;
+                let id = args.positional.get(2).ok_or_else(|| Error::bad("usage: print-to-thermal stock rm <id>"))?;
                 out_json(&ops::stocks(&config::remove_stock(&home, id)?))
             }
             Some(id) => out_json(&ops::set_stock(&home, id)?),
-            None => Err(Error::bad("usage: thermal stock <id> | add | rm").hint("see `thermal stocks` for ids")),
+            None => Err(Error::bad("usage: print-to-thermal stock <id> | add | rm").hint("see `print-to-thermal stocks` for ids")),
         },
         "status" => out_json(&serde_json::to_value(transport::status(&config::load(&home)?.printer)).unwrap_or_default()),
         "config" => out_json(&ops::config_report(&home)?),
         "models" => out_json(&ops::models()),
         "discover" => out_json(&serde_json::to_value(transport::discover(args.has("--scan"))).unwrap_or_default()),
         "setup" => {
-            let printer = args.value("--printer").ok_or_else(|| Error::bad("setup needs --printer").hint("tcp://host:9100, cups:<queue> or a device path; `thermal discover` lists candidates"))?;
-            let model = args.value("--model").ok_or_else(|| Error::bad("setup needs --model").hint("`thermal models` lists presets"))?;
+            let printer = args.value("--printer").ok_or_else(|| Error::bad("setup needs --printer").hint("tcp://host:9100, cups:<queue> or a device path; `print-to-thermal discover` lists candidates"))?;
+            let model = args.value("--model").ok_or_else(|| Error::bad("setup needs --model").hint("`print-to-thermal models` lists presets"))?;
             let stocks: Vec<String> = args.values("--stock").map(String::from).collect();
             let config = config::setup(&home, printer, model, &stocks, args.has("--force"))?;
             eprintln!("wrote {}", config::path(&home).display());
@@ -171,7 +171,7 @@ fn run(raw: Vec<String>) -> Result<()> {
         }
         "set" => {
             let (Some(key), Some(value)) = (args.positional.get(1), args.positional.get(2)) else {
-                return Err(Error::bad("usage: thermal set <key> <value>").hint(format!("keys: {}", config::SETTABLE.join(", "))));
+                return Err(Error::bad("usage: print-to-thermal set <key> <value>").hint(format!("keys: {}", config::SETTABLE.join(", "))));
             };
             out_json(&ops::config_report_of(&home, &config::set(&home, key, value)?))
         }
@@ -204,7 +204,7 @@ fn run(raw: Vec<String>) -> Result<()> {
             print!("{USAGE}");
             Ok(())
         }
-        other => Err(Error::bad(format!("unknown command \"{other}\"")).hint("run `thermal help`")),
+        other => Err(Error::bad(format!("unknown command \"{other}\"")).hint("run `print-to-thermal help`")),
     }
 }
 
@@ -237,7 +237,7 @@ fn send(args: &Args, config: &thermal::config::Config, prepared: &ops::Prepared,
 }
 
 fn job_args(args: &Args) -> Result<(Source, Options)> {
-    let spec = args.positional.get(1).ok_or_else(|| Error::bad("which job?").hint("a .json file, - for stdin, inline '{...}', or a template name (`thermal templates`)"))?;
+    let spec = args.positional.get(1).ok_or_else(|| Error::bad("which job?").hint("a .json file, - for stdin, inline '{...}', or a template name (`print-to-thermal templates`)"))?;
     let source = if spec == "-" {
         let mut s = String::new();
         std::io::stdin().read_to_string(&mut s)?;

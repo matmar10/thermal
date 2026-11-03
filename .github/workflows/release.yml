@@ -12,11 +12,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - { os: macos-14, target: aarch64-apple-darwin, asset: thermal-darwin-arm64 }
-          - { os: macos-14, target: x86_64-apple-darwin, asset: thermal-darwin-x86_64 }
-          - { os: ubuntu-latest, target: x86_64-unknown-linux-musl, asset: thermal-linux-x86_64 }
-          - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-musl, asset: thermal-linux-arm64 }
-          - { os: windows-latest, target: x86_64-pc-windows-msvc, asset: thermal-windows-x86_64.exe }
+          - { os: macos-14, target: aarch64-apple-darwin, asset: print-to-thermal-darwin-arm64 }
+          - { os: macos-14, target: x86_64-apple-darwin, asset: print-to-thermal-darwin-x86_64 }
+          - { os: ubuntu-latest, target: x86_64-unknown-linux-musl, asset: print-to-thermal-linux-x86_64 }
+          - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-musl, asset: print-to-thermal-linux-arm64 }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc, asset: print-to-thermal-windows-x86_64.exe }
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -30,7 +30,7 @@ jobs:
       - run: cargo build --release --target ${{ matrix.target }}
       - shell: bash
         run: |
-          src=target/${{ matrix.target }}/release/thermal
+          src=target/${{ matrix.target }}/release/print-to-thermal
           [ -f "$src.exe" ] && src="$src.exe"
           mkdir -p dist && cp "$src" "dist/${{ matrix.asset }}"
       - uses: actions/upload-artifact@v4
@@ -51,7 +51,7 @@ jobs:
         with:
           path: dist
           merge-multiple: true
-      - run: cd dist && sha256sum thermal-* > SHA256SUMS && cat SHA256SUMS
+      - run: cd dist && sha256sum print-to-thermal-* > SHA256SUMS && cat SHA256SUMS
       - env:
           GH_TOKEN: ${{ github.token }}
         run: gh release create "$GITHUB_REF_NAME" dist/* --title "$GITHUB_REF_NAME" --generate-notes

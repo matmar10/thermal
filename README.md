@@ -7,9 +7,9 @@ printer, from the command line, over HTTP, or through Claude Code.
 - **Claude Code plugin:** [`plugin/`](plugin/README.md). Install it with
   `/plugin marketplace add matmar10/thermal`, then
   `/plugin install thermal-printer@thermal`.
-- **CLI:** `thermal help`. Setup is `thermal discover`, then `thermal setup`,
-  then `thermal calibrate`.
-- **HTTP API:** `thermal serve`, with an OpenAPI 3.1 spec ([`openapi.yaml`](openapi.yaml)) and Swagger UI at `/docs`.
+- **CLI:** `print-to-thermal help`. Setup is `print-to-thermal discover`, then `print-to-thermal setup`,
+  then `print-to-thermal calibrate`.
+- **HTTP API:** `print-to-thermal serve`, with an OpenAPI 3.1 spec ([`openapi.yaml`](openapi.yaml)) and Swagger UI at `/docs`.
   [`docs/thermal.plist`](docs/thermal.plist) is an example macOS LaunchAgent.
 
 ## Layout
@@ -29,7 +29,7 @@ User state lives outside the repo: `~/.config/thermal/printer.json` and
 ## Develop
 
 ```sh
-make                # build target/release/thermal (needs rustup)
+make                # build target/release/print-to-thermal (needs rustup)
 make test           # cargo test
 make dev            # claude --plugin-dir ./plugin, using the local build
 make validate       # claude plugin validate ./plugin
@@ -50,6 +50,6 @@ make validate       # claude plugin validate ./plugin
 Copy the nearest file in `models/` and add it to `MODELS` in `src/config.rs`.
 Fill in `carriage_dots` from the spec sheet (print width in mm × dots per mm),
 the cutter (`none`, `partial`, `full`), and whether the printer has native QR
-(`GS ( k`). Measure the width with `thermal calibrate` before trusting it.
+(`GS ( k`). Measure the width with `print-to-thermal calibrate` before trusting it.
 
 MIT licensed.

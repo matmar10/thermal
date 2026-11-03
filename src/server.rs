@@ -1,4 +1,4 @@
-//! `thermal serve`: the same operations as the CLI, over HTTP.
+//! `print-to-thermal serve`: the same operations as the CLI, over HTTP.
 
 use std::io::{Cursor, Read};
 use std::net::IpAddr;
@@ -54,13 +54,13 @@ pub fn serve(home: PathBuf, opts: ServeOptions) -> Result<()> {
     config::load(&home)?;
     let server = Server::http(&opts.bind).map_err(|e| Error::new(500, format!("cannot listen on {}: {e}", opts.bind)))?;
     eprintln!(
-        "thermal: listening on http://{} (home {}, token {}, allowlist {})",
+        "print-to-thermal: listening on http://{} (home {}, token {}, allowlist {})",
         opts.bind,
         home.display(),
         if opts.token.is_some() { "required" } else { "off" },
         if opts.allow.is_empty() { "off".to_string() } else { format!("{:?}", opts.allow) }
     );
-    eprintln!("thermal: API docs at http://{}/docs", opts.bind);
+    eprintln!("print-to-thermal: API docs at http://{}/docs", opts.bind);
     let state = Arc::new(State { home, opts, printer: Mutex::new(()) });
     for mut request in server.incoming_requests() {
         let state = Arc::clone(&state);

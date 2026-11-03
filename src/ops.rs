@@ -94,7 +94,7 @@ pub struct PrintReport {
 pub fn print(config: &Config, prepared: &Prepared, force: bool, dry_run: bool) -> Result<(PrintReport, Vec<u8>)> {
     if let (Some(why), false) = (&prepared.mismatch, force) {
         return Err(Error::new(409, format!("refusing to print: {why}")).hint(format!(
-            "load the {stock} roll and record it (`thermal stock {stock}` / PUT /stock), or force it (--force / ?force=true)",
+            "load the {stock} roll and record it (`print-to-thermal stock {stock}` / PUT /stock), or force it (--force / ?force=true)",
             stock = prepared.layout.stock_id
         )));
     }

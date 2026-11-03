@@ -229,7 +229,7 @@ fn temp_home(name: &str) -> PathBuf {
 fn unconfigured_home_is_reported_as_not_configured() {
     let err = config::load(&temp_home("empty")).err().unwrap();
     assert_eq!(err.status, config::NOT_CONFIGURED);
-    assert!(err.hint.unwrap().contains("thermal setup"));
+    assert!(err.hint.unwrap().contains("print-to-thermal setup"));
 }
 
 #[test]

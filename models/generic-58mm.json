@@ -12,7 +12,7 @@
   "status": true,
   "notes": [
     "Fits most 203dpi 58mm printers, including small portable ones. Most have a tear bar, not a cutter.",
-    "QR codes are sent as images because many 58mm printers lack the native QR command. Try `thermal set qr native` if yours has it.",
-    "Run `thermal calibrate` to measure the real print width."
+    "QR codes are sent as images because many 58mm printers lack the native QR command. Try `print-to-thermal set qr native` if yours has it.",
+    "Run `print-to-thermal calibrate` to measure the real print width."
   ]
 }

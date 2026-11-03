@@ -38,13 +38,13 @@ the plugin leaves them alone.
 
 ## The binary
 
-`bin/thermal` is a short shell script. On first use it downloads the
-`thermal` program for your platform from this version's GitHub release and
+`bin/print-to-thermal` is a short shell script. On first use it downloads the
+`print-to-thermal` program for your platform from this version's GitHub release and
 refuses to run it unless its SHA-256 matches the one pinned in
 `checksums.txt`. The program is a single Rust binary with no runtime to
 install; its source is at https://github.com/matmar10/thermal.
 
-To use a binary you built yourself, set `THERMAL_BIN=/path/to/thermal`.
+To use a binary you built yourself, set `THERMAL_BIN=/path/to/print-to-thermal`.
 
 ## License
 

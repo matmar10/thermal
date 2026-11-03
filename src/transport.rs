@@ -31,7 +31,7 @@ impl Transport {
         let conn = conn.trim();
         if conn.is_empty() {
             return Err(Error::new(crate::config::NOT_CONFIGURED, "no printer connection is configured")
-                .hint("`thermal set connection tcp://<ip>:9100` (or cups:<queue>, or a device path); `thermal discover` lists candidates"));
+                .hint("`print-to-thermal set connection tcp://<ip>:9100` (or cups:<queue>, or a device path); `print-to-thermal discover` lists candidates"));
         }
         if let Some(addr) = conn.strip_prefix("tcp://") {
             let addr = addr.trim_end_matches('/');
@@ -83,7 +83,7 @@ fn connect(addr: &str, timeout: Duration) -> Result<TcpStream> {
         .next()
         .ok_or_else(|| Error::new(502, format!("no address for printer {addr}")))?;
     TcpStream::connect_timeout(&sock, timeout).map_err(|e| {
-        Error::new(502, format!("cannot reach printer at {addr}: {e}")).hint("is it on and on the network? check the connection with `thermal config`")
+        Error::new(502, format!("cannot reach printer at {addr}: {e}")).hint("is it on and on the network? check the connection with `print-to-thermal config`")
     })
 }
 

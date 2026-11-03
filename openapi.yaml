@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Thermal printer
-  version: 0.1.1
+  version: 0.1.2
   description: |
     Compose print jobs from a few primitives and print them on an ESC/POS
     thermal printer.
@@ -69,7 +69,7 @@ paths:
       tags: [setup]
       summary: The resolved printer configuration and the file it came from
       description: |
-        Setup (`thermal setup`, `thermal calibrate`, `thermal set`) is CLI-only,
+        Setup (`print-to-thermal setup`, `print-to-thermal calibrate`, `print-to-thermal set`) is CLI-only,
         so the configuration cannot be rewritten over the network.
       responses:
         "200":
@@ -79,7 +79,7 @@ paths:
               schema: { $ref: "#/components/schemas/Config" }
         "401": { $ref: "#/components/responses/Error" }
         "428":
-          description: Not configured yet; run `thermal setup` on the host
+          description: Not configured yet; run `print-to-thermal setup` on the host
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }

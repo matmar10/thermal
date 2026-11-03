@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
   Example macOS LaunchAgent: runs the thermal HTTP API at login.
-  1. Replace /PATH/TO/thermal with the binary (`command -v thermal`, or a
+  1. Replace /PATH/TO/print-to-thermal with the binary (`command -v print-to-thermal`, or a
      release download from https://github.com/matmar10/thermal/releases).
   2. Set THERMAL_TOKEN (or remove it to run without auth on a trusted LAN).
   3. cp docs/thermal.plist ~/Library/LaunchAgents/thermal.plist
@@ -14,7 +14,7 @@
   <key>Label</key><string>thermal</string>
   <key>ProgramArguments</key>
   <array>
-    <string>/PATH/TO/thermal</string>
+    <string>/PATH/TO/print-to-thermal</string>
     <string>serve</string>
     <string>--bind</string><string>0.0.0.0:8631</string>
   </array>

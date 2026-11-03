@@ -1,53 +1,54 @@
 ---
 name: thermal
 description: Print on the user's ESC/POS thermal receipt or label printer — shopping and to-do lists, agendas, jar/bin/box labels, folder tabs, notes, tickets, barcodes, QR codes and images. Compose a job from primitives (text sizes, big bitmap text, rules, rows, space, barcode, QR, image, cut), preview it against the paper, then print. Also sets the printer up the first time (find it, pick a model, measure the paper), records which roll is loaded, checks for paper, and saves reusable print templates. TRIGGER when the user asks to print something, make or print a label or sticker, print a list or receipt, label a jar/bin/folder, or mentions a thermal, receipt or label printer.
-allowed-tools: Bash(thermal *)
+allowed-tools: Bash(print-to-thermal *)
 ---
 
 # Thermal printer
 
-`thermal` is on PATH while this plugin is enabled: one self-contained binary,
+`print-to-thermal` is on PATH while this plugin is enabled: one self-contained binary,
 fetched and checksum-verified on first use. It keeps the user's printer
 settings and templates in `~/.config/thermal/` (or `$THERMAL_HOME`), so plugin
-updates never lose them.
+updates never lose them. (It is not called `thermal` because macOS ships an
+unrelated `/usr/bin/thermal` that would shadow it.)
 
 Printer connection entered at install (blank or a `${...}` placeholder if
 none): `${user_config.printer}`
 
 ## First run: set up the printer
 
-Run `thermal config`. If it exits with code 3 ("not configured"), set the
+Run `print-to-thermal config`. If it exits with code 3 ("not configured"), set the
 printer up before printing anything. Take it a step at a time with the user:
 
 1. **How is it connected?** If a connection was entered at install (above),
    use it and skip to step 2. Otherwise: network (Wi-Fi/Ethernet) or USB. Run
-   `thermal discover` to list CUPS queues and USB/serial devices. Office laser
+   `print-to-thermal discover` to list CUPS queues and USB/serial devices. Office laser
    and inkjet printers show up too: ask which one is the receipt printer, and
    never send to one of those. For a
    network printer, ask for its IP (often on a self-test page: hold FEED
-   while switching it on), or with their OK run `thermal discover --scan` to
+   while switching it on), or with their OK run `print-to-thermal discover --scan` to
    look for port 9100 on the local network. The connection is one of:
    - `tcp://<ip>:9100`: a network printer
    - `cups:<queue>`: a USB printer added to CUPS (macOS/Linux) as a raw queue
    - `/dev/usb/lp0` or a serial device: a USB printer on Linux
-2. **Which model?** Run `thermal models` and pick the closest preset. Most
+2. **Which model?** Run `print-to-thermal models` and pick the closest preset. Most
    clones are `generic-80mm` or `generic-58mm`.
-3. **Write the config:** `thermal setup --printer <conn> --model <id>`. This
+3. **Write the config:** `print-to-thermal setup --printer <conn> --model <id>`. This
    creates one roll at the printer's full width.
 4. **Measure the paper.** Ask the user to load a roll, then, with their OK,
-   run `thermal calibrate`. It prints a numbered ruler. Ask for the last number
+   run `print-to-thermal calibrate`. It prints a numbered ruler. Ask for the last number
    that is fully on the paper: that is the roll's width in dots. Never guess
    it, because printers do not print edge to edge.
-5. **Record each roll they own:** `thermal stock add <id>=<width_mm>:<dots>[:adhesive]`.
+5. **Record each roll they own:** `print-to-thermal stock add <id>=<width_mm>:<dots>[:adhesive]`.
    Use short, descriptive ids (`receipt-80`, `labels-50-sticky`), mark sticky
-   label stock `adhesive`, and remove the placeholder (`thermal stock rm roll-80`)
-   once a real roll is loaded (`thermal stock <id>`).
+   label stock `adhesive`, and remove the placeholder (`print-to-thermal stock rm roll-80`)
+   once a real roll is loaded (`print-to-thermal stock <id>`).
 6. Print a short test, such as the `note` template, and ask how it looks.
 
 If a connection was entered at install and differs from the one
-`thermal config` shows, the user changed it: run `thermal set connection <it>`.
+`print-to-thermal config` shows, the user changed it: run `print-to-thermal set connection <it>`.
 
-Settings can be changed later with `thermal set <key> <value>`. The keys are
+Settings can be changed later with `print-to-thermal set <key> <value>`. The keys are
 `connection`, `model`, `max_text_size`, `cutter` (`none`, `partial`, `full`),
 `qr` (`native`, `raster`), `status` and the other printer fields. Use it when a
 test print shows something is off: no cut means `cutter none`, a missing QR
@@ -55,16 +56,16 @@ code means `qr raster`, and so on.
 
 ## Printing
 
-1. **Know the medium.** `thermal stocks` gives the printer's limits, every
+1. **Know the medium.** `print-to-thermal stocks` gives the printer's limits, every
    roll with its characters per line at each text size, and which roll is
    `loaded`.
 2. **Check the roll when it matters.** The printer cannot sense which roll is
    in it, so `loaded` is only what was last recorded. If the job needs a
    particular stock, ask; anything that must stick needs an adhesive roll.
-   When they swap rolls, run `thermal stock <id>`.
-3. **Compose** an ad-hoc job, or use a template (`thermal templates`).
-4. **Preview.** `thermal preview <job>`. Fix every `warning:` and `OVERFLOW`.
-5. **Print.** `thermal print <job>` checks the paper sensor (network printers
+   When they swap rolls, run `print-to-thermal stock <id>`.
+3. **Compose** an ad-hoc job, or use a template (`print-to-thermal templates`).
+4. **Preview.** `print-to-thermal preview <job>`. Fix every `warning:` and `OVERFLOW`.
+5. **Print.** `print-to-thermal print <job>` checks the paper sensor (network printers
    only), then sends it. "sent" means the printer accepted the bytes, not that
    paper came out. Say so.
 
@@ -79,7 +80,7 @@ A job naming a `stock` other than the loaded one is **refused** without
 ## Limits that apply to every printer
 
 - Built-in `text` sizes run from 1 up to the printer's `max_text_size`
-  (usually 4); characters per line at each size come from `thermal stocks`.
+  (usually 4); characters per line at each size come from `print-to-thermal stocks`.
   For anything larger, use `big`.
 - Built-in text is **ASCII only**. `° — ½ é` and the like are folded to ASCII
   automatically. If a symbol matters, use `big`, which draws any character.
@@ -130,7 +131,7 @@ loops over a list:
 ```
 
 Built in: `shopping-list`, `folder-tab`, `item-label`, `note`, `day`.
-`thermal templates` lists them with the user's own; `thermal templates <name>`
+`print-to-thermal templates` lists them with the user's own; `print-to-thermal templates <name>`
 shows one. Save a template in `~/.config/thermal/templates/<name>.json` (a
 user template replaces a built-in one of the same name).
 
@@ -140,7 +141,7 @@ or the same kind of print keeps coming up.
 ## Example
 
 ```sh
-thermal print - <<'EOF'
+print-to-thermal print - <<'EOF'
 { "blocks": [
   { "type": "big", "text": "Saturday", "height": 8 },
   { "type": "rule", "char": "=" },
@@ -156,7 +157,7 @@ EOF
 
 ## Over the network
 
-`thermal serve [--bind 0.0.0.0:8631] [--token T] [--allow ip,ip]` runs the same
+`print-to-thermal serve [--bind 0.0.0.0:8631] [--token T] [--allow ip,ip]` runs the same
 operations as an HTTP API with an OpenAPI spec (`/openapi.json`, Swagger UI at
 `/docs`). When `THERMAL_URL` is set, call it with curl: `GET /stocks`,
 `POST /preview`, `POST /print?force=&dry_run=&copies=&stock=` (the body is a

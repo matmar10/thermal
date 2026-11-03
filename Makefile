@@ -2,7 +2,7 @@ CARGO ?= $(shell command -v cargo || echo /opt/homebrew/opt/rustup/bin/cargo)
 VERSION := $(shell sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n 1)
 REPO := matmar10/thermal
 
-target/release/thermal: $(wildcard src/*.rs) Cargo.toml openapi.yaml assets/font.ttf $(wildcard models/*.json templates/*.json)
+target/release/print-to-thermal: $(wildcard src/*.rs) Cargo.toml openapi.yaml assets/font.ttf $(wildcard models/*.json templates/*.json)
 	$(CARGO) build --release
 
 .PHONY: test lint validate checksums dev
@@ -22,5 +22,5 @@ checksums:
 	cat plugin/checksums.txt
 
 # Run Claude with the plugin from this checkout and the locally built binary.
-dev: target/release/thermal
-	THERMAL_BIN="$(CURDIR)/target/release/thermal" claude --plugin-dir ./plugin
+dev: target/release/print-to-thermal
+	THERMAL_BIN="$(CURDIR)/target/release/print-to-thermal" claude --plugin-dir ./plugin

@@ -27,7 +27,7 @@ pub struct Config {
     pub printer: Printer,
     pub stocks: BTreeMap<String, Stock>,
     /// The roll currently in the printer. The printer cannot sense this, so it
-    /// is whatever someone last recorded with `thermal stock <id>`.
+    /// is whatever someone last recorded with `print-to-thermal stock <id>`.
     pub loaded: String,
 }
 
@@ -167,7 +167,7 @@ pub fn user_dir() -> PathBuf {
 /// `THERMAL_HOME` wins. Then the user config directory, if it holds a
 /// `printer.json`. Then a `printer.json` above the executable, for a
 /// development checkout. Otherwise the user config directory, which is where
-/// `thermal setup` writes.
+/// `print-to-thermal setup` writes.
 pub fn home() -> PathBuf {
     if let Some(dir) = env("THERMAL_HOME") {
         return PathBuf::from(dir);
@@ -208,7 +208,7 @@ fn read_doc(home: &Path) -> Result<Value> {
         Ok(raw) => raw,
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
             return Err(Error::new(NOT_CONFIGURED, format!("thermal is not configured: no {}", path.display()))
-                .hint("run `thermal setup --printer <connection> --model <model>` (see `thermal discover` and `thermal models`)"));
+                .hint("run `print-to-thermal setup --printer <connection> --model <model>` (see `print-to-thermal discover` and `print-to-thermal models`)"));
         }
         Err(e) => return Err(Error::new(500, format!("cannot read {}: {e}", path.display()))),
     };
@@ -318,7 +318,7 @@ pub fn new_stock(width_mm: u32, dots: Option<u32>, adhesive: bool, printer: &Pri
         print_dots,
         adhesive,
         uses: Vec::new(),
-        notes: if estimated { vec!["print_dots is estimated, not measured: run `thermal calibrate` and record what prints.".into()] } else { Vec::new() },
+        notes: if estimated { vec!["print_dots is estimated, not measured: run `print-to-thermal calibrate` and record what prints.".into()] } else { Vec::new() },
     }
 }
 
@@ -335,7 +335,7 @@ fn estimate_dots(width_mm: u32, printer: &Printer) -> u32 {
 pub fn setup(home: &Path, connection: &str, model_id: &str, stocks: &[String], force: bool) -> Result<Config> {
     let file = path(home);
     if file.exists() && !force {
-        return Err(Error::new(409, format!("{} already exists", file.display())).hint("change it with `thermal set` / `thermal stock add`, or pass --force to start over"));
+        return Err(Error::new(409, format!("{} already exists", file.display())).hint("change it with `print-to-thermal set` / `print-to-thermal stock add`, or pass --force to start over"));
     }
     model(model_id)?;
     let mut doc = json!({ "printer": { "model": model_id, "connection": normalize_connection(connection) }, "stocks": {}, "loaded": "" });
@@ -356,7 +356,7 @@ pub fn setup(home: &Path, connection: &str, model_id: &str, stocks: &[String], f
     load(home)
 }
 
-/// Printer fields `thermal set` may change.
+/// Printer fields `print-to-thermal set` may change.
 pub const SETTABLE: &[&str] = &[
     "connection", "model", "name", "paper_mm", "dots_per_mm", "carriage_dots", "cell_dots", "line_dots", "max_text_size", "dead_zone_mm", "cutter", "qr",
     "status",
@@ -400,7 +400,7 @@ pub fn add_stock(home: &Path, spec: &str) -> Result<Config> {
 pub fn remove_stock(home: &Path, id: &str) -> Result<Config> {
     edit(home, |doc| {
         if doc.get("loaded").and_then(Value::as_str) == Some(id) {
-            return Err(Error::bad(format!("\"{id}\" is the loaded stock")).hint("record another roll as loaded first (`thermal stock <id>`)"));
+            return Err(Error::bad(format!("\"{id}\" is the loaded stock")).hint("record another roll as loaded first (`print-to-thermal stock <id>`)"));
         }
         let removed = doc.get_mut("stocks").and_then(Value::as_object_mut).and_then(|s| s.remove(id));
         if removed.is_none() {
