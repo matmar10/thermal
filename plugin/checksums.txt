@@ -1,6 +1,6 @@
-# sha256  binary in libexec/ for v0.1.2, from the release SHA256SUMS (`make vendor`)
-7d717ead51351553f0e4e6039191ab05be5000067e29df32baaf6de2898fd6f2  print-to-thermal-darwin-arm64
-018f2eb5ed12df36c586d44ccb65eee85ac66a9bb6fdf865ad197ad8deb4722b  print-to-thermal-darwin-x86_64
-012a4ee38b18336133b73f27a8a4ec17e4ddfb48ac8530dd563922d84fd01154  print-to-thermal-linux-arm64
-dc374c868ae4b739eadb3ea0d0f2fea15c96ce49174113b664d82038500c8a71  print-to-thermal-linux-x86_64
-436a31fff04d201423e0eb09f6e73974cd8da9f4d1938b7abef8bda4eea6eabd  print-to-thermal-windows-x86_64.exe
+# sha256  binary in libexec/ for v0.1.3, from the release SHA256SUMS (`make vendor`)
+6b723eb0b25ae5f494599737b7a72a3d7d725f9a609da610cc32cf55919744f8  print-to-thermal-darwin-arm64
+8e31c5411c5aec69f501066c663701614fb58abd67c407a7d96cb403b6975b3b  print-to-thermal-darwin-x86_64
+eeb0de1750a02efaa51f5bb9b069a3c0a80fc9e2b49da91c514b9a44910668ed  print-to-thermal-linux-arm64
+6e5dee51b3075ae1fa25e8159ebe6369f348848e09e0a8b09c26aab96f8b2cb4  print-to-thermal-linux-x86_64
+2c44cacae5ef87d891db551504bd2f1e41c7455433c022e91e6ac7e0cb0e74fe  print-to-thermal-windows-x86_64.exe
