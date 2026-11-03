@@ -1,6 +1,6 @@
-# sha256  asset for v0.1.1, from the release SHA256SUMS (`make checksums`)
-27898ac1d5c92cf7d3b8607030d35a48edd047c7e4a63661ec3715e0bdbc7f2d  thermal-darwin-arm64
-ec816696a65329afc3ab4052b76a16b70c3680ddd6edd8dc6677b42e698c5812  thermal-darwin-x86_64
-9f56a6b5d493fbffa460763d2079f6a433d959e1da63485d05edfe1f1e14eb8b  thermal-linux-arm64
-9d5da24eac68affa760fc4894703a35d0a32ba3e98b9d63fc56bbbd7c987ec15  thermal-linux-x86_64
-91e5c38b34762c04c29c43db8f380db1ad7f010fcb10791a18ed44de7fdbc847  thermal-windows-x86_64.exe
+# sha256  asset for v0.1.2, from the release SHA256SUMS (`make checksums`)
+7d717ead51351553f0e4e6039191ab05be5000067e29df32baaf6de2898fd6f2  print-to-thermal-darwin-arm64
+018f2eb5ed12df36c586d44ccb65eee85ac66a9bb6fdf865ad197ad8deb4722b  print-to-thermal-darwin-x86_64
+012a4ee38b18336133b73f27a8a4ec17e4ddfb48ac8530dd563922d84fd01154  print-to-thermal-linux-arm64
+dc374c868ae4b739eadb3ea0d0f2fea15c96ce49174113b664d82038500c8a71  print-to-thermal-linux-x86_64
+436a31fff04d201423e0eb09f6e73974cd8da9f4d1938b7abef8bda4eea6eabd  print-to-thermal-windows-x86_64.exe
