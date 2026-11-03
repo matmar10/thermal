@@ -12,11 +12,11 @@ pub const NOT_CONFIGURED: u16 = 428;
 /// Printer presets, compiled in. A user's `printer.json` names one with
 /// `printer.model` and overrides any of its fields.
 pub const MODELS: &[(&str, &str)] = &[
-    ("generic-80mm", include_str!("../models/generic-80mm.json")),
-    ("generic-58mm", include_str!("../models/generic-58mm.json")),
-    ("epson-tm-t20", include_str!("../models/epson-tm-t20.json")),
-    ("epson-tm-t88", include_str!("../models/epson-tm-t88.json")),
-    ("mht-p80e", include_str!("../models/mht-p80e.json")),
+    ("generic-80mm", include_str!("../plugin/thermal/models/generic-80mm.json")),
+    ("generic-58mm", include_str!("../plugin/thermal/models/generic-58mm.json")),
+    ("epson-tm-t20", include_str!("../plugin/thermal/models/epson-tm-t20.json")),
+    ("epson-tm-t88", include_str!("../plugin/thermal/models/epson-tm-t88.json")),
+    ("mht-p80e", include_str!("../plugin/thermal/models/mht-p80e.json")),
 ];
 
 const DEFAULT_MODEL: &str = "generic-80mm";

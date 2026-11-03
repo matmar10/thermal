@@ -159,11 +159,11 @@ pub fn set_stock(home: &Path, id: &str) -> Result<Value> {
 /// Templates compiled into the binary. A user template of the same name, in
 /// `<home>/templates/`, replaces one.
 pub const BUILTIN_TEMPLATES: &[(&str, &str)] = &[
-    ("day", include_str!("../templates/day.json")),
-    ("folder-tab", include_str!("../templates/folder-tab.json")),
-    ("item-label", include_str!("../templates/item-label.json")),
-    ("note", include_str!("../templates/note.json")),
-    ("shopping-list", include_str!("../templates/shopping-list.json")),
+    ("day", include_str!("../plugin/thermal/templates/day.json")),
+    ("folder-tab", include_str!("../plugin/thermal/templates/folder-tab.json")),
+    ("item-label", include_str!("../plugin/thermal/templates/item-label.json")),
+    ("note", include_str!("../plugin/thermal/templates/note.json")),
+    ("shopping-list", include_str!("../plugin/thermal/templates/shopping-list.json")),
 ];
 
 fn templates_dir(home: &Path) -> PathBuf {

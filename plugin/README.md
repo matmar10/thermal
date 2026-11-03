@@ -40,21 +40,22 @@ the plugin leaves them alone.
 - Most ESC/POS printers: Epson TM series and the many compatible 58mm and
   80mm printers (Xprinter, Rongta, Munbyn, HOIN, Milestone and others).
   StarPRNT-only Star printers are not supported.
-- macOS (Apple Silicon and Intel), Linux (x86_64 and arm64, including Raspberry
-  Pi) and Windows (network printers only).
+- macOS, Linux (including Raspberry Pi) and Windows, with Python 3.9 or newer.
+  Network printers, USB printers through CUPS (macOS, Linux) or a Windows
+  printer queue (`win32:<printer>`), and device paths.
 - Text in four sizes, big lettering in any size, rules, two-column rows,
   barcodes, QR codes, images, multi-label strips and cuts.
 
-## The binary
+## The program
 
-`bin/print-to-thermal` is a short shell script that runs the
-`print-to-thermal` program for your platform from `libexec/`. The binaries ship
-inside the plugin, so nothing is downloaded; they are copied from this
-version's GitHub release, and their SHA-256 sums are listed in `checksums.txt`.
-The program is a single Rust binary with no runtime to install; its source is
-at https://github.com/matmar10/thermal.
+`bin/print-to-thermal` (and `bin/print-to-thermal.cmd` on Windows) is a short
+launcher that runs the Python package in `thermal/`. It uses only the Python
+standard library, so it needs Python 3.9 or newer and nothing else: nothing is
+downloaded or installed, and there are no compiled files. JPEG images need
+Pillow if you have it; PNG works without it.
 
-To use a binary you built yourself, set `THERMAL_BIN=/path/to/print-to-thermal`.
+To pick the interpreter, set `THERMAL_PYTHON=/path/to/python3`. Source:
+https://github.com/matmar10/thermal.
 
 ## Privacy
 
@@ -63,5 +64,6 @@ Collects nothing. Print jobs go only to the printer you configure. See the
 
 ## License
 
-MIT. The embedded DejaVu Sans Mono font is under its own license; see
-`FONT-LICENSE`.
+MIT. The glyph outlines in `thermal/font.json` come from DejaVu Sans Mono,
+which is under its own license; see `FONT-LICENSE`. `thermal/qrcodegen.py` is
+Project Nayuki's QR Code generator (MIT).

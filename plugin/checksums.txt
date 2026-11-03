@@ -1,6 +1,0 @@
-# sha256  binary in libexec/ for v0.2.0, from the release SHA256SUMS (`make vendor`)
-232d328226911dac3aceaf1aa273eb197ef176b73b613714f7036e46142fe7ba  print-to-thermal-darwin-arm64
-0f224c1de357b902ec5b253c8115599fe86b1c480f7d0247c400e7206d0853f0  print-to-thermal-darwin-x86_64
-3ef28b6d2381430a603b054aa71f22101506e179ecde310b149780f1919a1390  print-to-thermal-linux-arm64
-4232dc00dba67c8501b3f0276403d101287472bb7ae3185382c8d4f647560dac  print-to-thermal-linux-x86_64
-04ad59408f270fc4f51d14972684386944e9082c9ce5f2c4d5aa71b33780fa4a  print-to-thermal-windows-x86_64.exe

@@ -21,4 +21,4 @@ pub mod server;
 pub mod text;
 
 /// The OpenAPI document, compiled in so the binary can serve it anywhere.
-pub const OPENAPI_YAML: &str = include_str!("../openapi.yaml");
+pub const OPENAPI_YAML: &str = include_str!("../plugin/thermal/openapi.yaml");

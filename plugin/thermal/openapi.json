@@ -1,0 +1,1417 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Thermal printer",
+    "version": "0.1.2",
+    "description": "Compose print jobs from a few primitives and print them on an ESC/POS\nthermal printer.\n\n**Workflow:** `GET /stocks` (limits, columns per size, which roll is loaded)\n→ build a job → `POST /preview` (fix any warnings) → `POST /print`.\n\n**Limits worth knowing before you design:**\n- Built-in `text` sizes run from 1 to the printer's `max_text_size` (see\n  `GET /stocks`). Use a `big` block for anything larger.\n- Built-in text is folded to ASCII (the degree sign, fractions and accents\n  will not print). `big` blocks draw any character the font has.\n- Some printers start every label with blank paper (`dead_zone_mm`),\n  which cannot be removed.\n- The printer cannot tell which roll is loaded. `PUT /stock` records it.\n  A job that names a `stock` other than the loaded one is refused (409)\n  unless `force=true`.\n- A successful `/print` means the printer accepted the bytes, not that\n  paper came out.\n"
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "security": [
+    {
+      "bearer": []
+    },
+    {}
+  ],
+  "tags": [
+    {
+      "name": "printing"
+    },
+    {
+      "name": "setup"
+    },
+    {
+      "name": "templates"
+    },
+    {
+      "name": "meta"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "health",
+        "tags": [
+          "meta"
+        ],
+        "summary": "Liveness check (no auth)",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Up",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/status": {
+      "get": {
+        "operationId": "getStatus",
+        "tags": [
+          "setup"
+        ],
+        "summary": "Ask the paper sensor",
+        "responses": {
+          "200": {
+            "description": "Sensor reading. `unknown` means no answer, not a fault.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Status"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/config": {
+      "get": {
+        "operationId": "getConfig",
+        "tags": [
+          "setup"
+        ],
+        "summary": "The resolved printer configuration and the file it came from",
+        "description": "Setup (`print-to-thermal setup`, `print-to-thermal calibrate`, `print-to-thermal set`) is CLI-only,\nso the configuration cannot be rewritten over the network.\n",
+        "responses": {
+          "200": {
+            "description": "The configuration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Config"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "428": {
+            "description": "Not configured yet; run `print-to-thermal setup` on the host",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stocks": {
+      "get": {
+        "operationId": "getStocks",
+        "tags": [
+          "setup"
+        ],
+        "summary": "Printer limits, stocks with columns per text size, and the loaded stock",
+        "responses": {
+          "200": {
+            "description": "Everything needed to design a job",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stocks"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/stock": {
+      "put": {
+        "operationId": "setLoadedStock",
+        "tags": [
+          "setup"
+        ],
+        "summary": "Record which roll is loaded",
+        "description": "The printer cannot sense this. Call it after swapping rolls.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "example": "label-60-adhesive"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "loaded": {
+                      "type": "string"
+                    },
+                    "adhesive": {
+                      "type": "boolean"
+                    },
+                    "description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/templates": {
+      "get": {
+        "operationId": "listTemplates",
+        "tags": [
+          "templates"
+        ],
+        "summary": "List saved templates and their params",
+        "responses": {
+          "200": {
+            "description": "Templates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "description": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "stock": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "params": {
+                        "type": [
+                          "object",
+                          "null"
+                        ],
+                        "additionalProperties": true
+                      },
+                      "defaults": {
+                        "type": [
+                          "object",
+                          "null"
+                        ],
+                        "additionalProperties": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/templates/{name}": {
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getTemplate",
+        "tags": [
+          "templates"
+        ],
+        "summary": "Fetch one template",
+        "responses": {
+          "200": {
+            "description": "The template document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "put": {
+        "operationId": "saveTemplate",
+        "tags": [
+          "templates"
+        ],
+        "summary": "Save (create or replace) a template",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Job"
+              },
+              "examples": {
+                "pantry-jar": {
+                  "value": {
+                    "description": "A jar label with the contents and the date filled",
+                    "stock": "label-60-adhesive",
+                    "params": {
+                      "contents": "What is in the jar",
+                      "date": "Date filled, e.g. 2026-11-01"
+                    },
+                    "blocks": [
+                      {
+                        "type": "space",
+                        "mm": 2
+                      },
+                      {
+                        "type": "text",
+                        "text": "{{contents}}",
+                        "size": 3,
+                        "bold": true,
+                        "align": "center"
+                      },
+                      {
+                        "type": "text",
+                        "text": "Filled {{date}}",
+                        "align": "center"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "saved": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteTemplate",
+        "tags": [
+          "templates"
+        ],
+        "summary": "Delete a template",
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "deleted": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/preview": {
+      "post": {
+        "operationId": "preview",
+        "tags": [
+          "printing"
+        ],
+        "summary": "Lay out a job and show it as text, without printing",
+        "description": "Columns, wrapping and alignment are exact; bitmaps, barcodes and QR\ncodes are drawn as boxes of about their printed height. Check\n`warnings` before printing.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/stock"
+          },
+          {
+            "$ref": "#/components/parameters/copies"
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "description": "`text` returns the preview as text/plain instead of JSON.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "json",
+                "text"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/JobRequest"
+        },
+        "responses": {
+          "200": {
+            "description": "Preview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Preview"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/print": {
+      "post": {
+        "operationId": "print",
+        "tags": [
+          "printing"
+        ],
+        "summary": "Check the stock and paper, then print",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/stock"
+          },
+          {
+            "$ref": "#/components/parameters/copies"
+          },
+          {
+            "name": "force",
+            "in": "query",
+            "description": "Print even though the job's stock is not the one recorded as loaded.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "dry_run",
+            "in": "query",
+            "description": "Do everything except send to the printer.",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/JobRequest"
+        },
+        "responses": {
+          "200": {
+            "description": "Sent (accepted by the printer; it cannot confirm paper came out)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrintReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "description": "The job names a stock that is not the loaded one",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The printer could not be reached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The printer is out of paper",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/openapi.yaml": {
+      "get": {
+        "operationId": "openapiYaml",
+        "tags": [
+          "meta"
+        ],
+        "summary": "This document (YAML)",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OpenAPI document",
+            "content": {
+              "application/yaml": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "operationId": "openapiJson",
+        "tags": [
+          "meta"
+        ],
+        "summary": "This document (JSON)",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OpenAPI document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/docs": {
+      "get": {
+        "operationId": "docs",
+        "tags": [
+          "meta"
+        ],
+        "summary": "Swagger UI",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "HTML page",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Required only when the server was started with --token / THERMAL_TOKEN."
+      }
+    },
+    "parameters": {
+      "stock": {
+        "name": "stock",
+        "in": "query",
+        "description": "Lay out for this stock, overriding the job's `stock`.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "copies": {
+        "name": "copies",
+        "in": "query",
+        "description": "Print this many copies, each cut separately.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "requestBodies": {
+      "JobRequest": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/Job"
+                },
+                {
+                  "$ref": "#/components/schemas/TemplateRequest"
+                }
+              ]
+            },
+            "examples": {
+              "shopping-list": {
+                "summary": "An ad-hoc shopping list on the receipt roll",
+                "value": {
+                  "stock": "receipt-80",
+                  "blocks": [
+                    {
+                      "type": "text",
+                      "text": "Groceries",
+                      "size": 2,
+                      "bold": true,
+                      "align": "center"
+                    },
+                    {
+                      "type": "text",
+                      "text": "Saturday",
+                      "align": "center"
+                    },
+                    {
+                      "type": "rule"
+                    },
+                    {
+                      "type": "text",
+                      "text": "Eggs (dozen)",
+                      "bullet": "[ ] "
+                    },
+                    {
+                      "type": "text",
+                      "text": "Whole milk",
+                      "bullet": "[ ] "
+                    },
+                    {
+                      "type": "row",
+                      "left": "Coffee beans",
+                      "right": "2 bags",
+                      "fill": "."
+                    }
+                  ]
+                }
+              },
+              "item-label": {
+                "summary": "A bin label with a barcode on adhesive stock",
+                "value": {
+                  "stock": "label-60-adhesive",
+                  "blocks": [
+                    {
+                      "type": "space",
+                      "mm": 2
+                    },
+                    {
+                      "type": "big",
+                      "text": "CABLES",
+                      "height": 9
+                    },
+                    {
+                      "type": "text",
+                      "text": "HDMI, USB-C, power",
+                      "align": "center"
+                    },
+                    {
+                      "type": "barcode",
+                      "data": "BIN-0042",
+                      "height": 8
+                    }
+                  ]
+                }
+              },
+              "from-template": {
+                "summary": "A saved template with data",
+                "value": {
+                  "template": "shopping-list",
+                  "data": {
+                    "title": "Costco",
+                    "items": [
+                      "Paper towels",
+                      "Olive oil",
+                      "Rice"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "Error": {
+        "description": "Error with a hint about what to do",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "hint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "Status": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string",
+            "example": "tcp://192.168.1.50:9100"
+          },
+          "paper": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "low",
+              "out",
+              "unknown"
+            ]
+          },
+          "raw": {
+            "type": "integer",
+            "description": "Raw sensor byte"
+          },
+          "error": {
+            "type": "string"
+          }
+        }
+      },
+      "Config": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "description": "Path of printer.json"
+          },
+          "connection": {
+            "type": "string",
+            "example": "tcp://192.168.1.50:9100",
+            "description": "tcp://host:port, cups:<queue> or a device path"
+          },
+          "printer": {
+            "type": "object",
+            "description": "The model preset merged with the user's overrides (model, cutter, qr, dots_per_mm, carriage_dots, max_text_size...)",
+            "additionalProperties": true
+          },
+          "stocks": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "loaded": {
+            "type": "string"
+          }
+        }
+      },
+      "Stocks": {
+        "type": "object",
+        "properties": {
+          "loaded": {
+            "type": "string"
+          },
+          "printer": {
+            "type": "object",
+            "description": "Device geometry and limits (dots_per_mm, max_text_size, dead_zone_mm, notes...)",
+            "additionalProperties": true
+          },
+          "stocks": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "width_mm": {
+                  "type": "integer"
+                },
+                "print_dots": {
+                  "type": "integer"
+                },
+                "adhesive": {
+                  "type": "boolean"
+                },
+                "uses": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "notes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "columns": {
+                  "type": "object",
+                  "description": "Characters per line at each built-in size, e.g. {\"1x\":32,\"2x\":16}",
+                  "additionalProperties": {
+                    "type": "integer"
+                  }
+                },
+                "loaded": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Preview": {
+        "type": "object",
+        "properties": {
+          "stock": {
+            "type": "string"
+          },
+          "adhesive": {
+            "type": "boolean"
+          },
+          "preview": {
+            "type": "string",
+            "description": "Text picture of the roll"
+          },
+          "labels_mm": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "description": "Estimated length of each piece between cuts, excluding the leading dead zone"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "PrintReport": {
+        "type": "object",
+        "properties": {
+          "sent": {
+            "type": "boolean",
+            "description": "The printer accepted the bytes (false on dry runs)"
+          },
+          "bytes": {
+            "type": "integer"
+          },
+          "stock": {
+            "type": "string"
+          },
+          "adhesive": {
+            "type": "boolean"
+          },
+          "copies": {
+            "type": "integer"
+          },
+          "paper": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "TemplateRequest": {
+        "type": "object",
+        "required": [
+          "template"
+        ],
+        "properties": {
+          "template": {
+            "description": "A saved template's name, or a template document inline.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/Job"
+              }
+            ]
+          },
+          "data": {
+            "type": "object",
+            "description": "Values for the template's `{{placeholders}}`.",
+            "additionalProperties": true
+          }
+        }
+      },
+      "Job": {
+        "type": "object",
+        "description": "A print job. A template is the same document plus `params`/`defaults`;\nany string may contain `{{name}}` placeholders, and an `each` block\nrepeats its blocks once per item.\n",
+        "required": [
+          "blocks"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "params": {
+            "type": "object",
+            "description": "Template parameters: name -> what to pass.",
+            "additionalProperties": true
+          },
+          "defaults": {
+            "type": "object",
+            "description": "Values used when a parameter is not supplied.",
+            "additionalProperties": true
+          },
+          "stock": {
+            "type": "string",
+            "description": "Stock the job is for. Omit to use the loaded one. A mismatch is refused unless forced."
+          },
+          "copies": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1
+          },
+          "cut": {
+            "type": "string",
+            "enum": [
+              "partial",
+              "full",
+              "none"
+            ],
+            "default": "partial"
+          },
+          "feed": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255,
+            "default": 3,
+            "description": "Lines fed before each cut"
+          },
+          "blocks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Block"
+            }
+          }
+        }
+      },
+      "Block": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/TextBlock"
+          },
+          {
+            "$ref": "#/components/schemas/BigBlock"
+          },
+          {
+            "$ref": "#/components/schemas/RuleBlock"
+          },
+          {
+            "$ref": "#/components/schemas/RowBlock"
+          },
+          {
+            "$ref": "#/components/schemas/SpaceBlock"
+          },
+          {
+            "$ref": "#/components/schemas/BarcodeBlock"
+          },
+          {
+            "$ref": "#/components/schemas/QrBlock"
+          },
+          {
+            "$ref": "#/components/schemas/ImageBlock"
+          },
+          {
+            "$ref": "#/components/schemas/CutBlock"
+          },
+          {
+            "$ref": "#/components/schemas/EachBlock"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "text": "#/components/schemas/TextBlock",
+            "big": "#/components/schemas/BigBlock",
+            "rule": "#/components/schemas/RuleBlock",
+            "row": "#/components/schemas/RowBlock",
+            "space": "#/components/schemas/SpaceBlock",
+            "barcode": "#/components/schemas/BarcodeBlock",
+            "qr": "#/components/schemas/QrBlock",
+            "image": "#/components/schemas/ImageBlock",
+            "cut": "#/components/schemas/CutBlock",
+            "each": "#/components/schemas/EachBlock"
+          }
+        }
+      },
+      "Align": {
+        "type": "string",
+        "enum": [
+          "left",
+          "center",
+          "right"
+        ]
+      },
+      "Size": {
+        "description": "Built-in text size 1-4 (2 = double width and height), or [width, height].",
+        "oneOf": [
+          {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4
+            },
+            "minItems": 2,
+            "maxItems": 2
+          }
+        ]
+      },
+      "TextBlock": {
+        "type": "object",
+        "description": "Built-in font, wrapped at word boundaries to the stock width. Folded to ASCII.",
+        "required": [
+          "type",
+          "text"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "text"
+          },
+          "text": {
+            "type": "string",
+            "description": "Newlines are hard breaks"
+          },
+          "size": {
+            "$ref": "#/components/schemas/Size"
+          },
+          "bold": {
+            "type": "boolean"
+          },
+          "underline": {
+            "type": "boolean"
+          },
+          "invert": {
+            "type": "boolean",
+            "description": "White on black"
+          },
+          "align": {
+            "$ref": "#/components/schemas/Align"
+          },
+          "bullet": {
+            "type": "string",
+            "description": "First-line prefix with a hanging indent, e.g. \"[ ] \" or \"- \""
+          },
+          "wrap": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "BigBlock": {
+        "type": "object",
+        "description": "Text drawn as a bitmap. Any size, any character the font has. One line per newline.",
+        "required": [
+          "type",
+          "text"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "big"
+          },
+          "text": {
+            "type": "string"
+          },
+          "height": {
+            "type": "number",
+            "description": "Capital-letter height in mm (default 10). Shrunk to fit the width if needed."
+          },
+          "fit": {
+            "type": "boolean",
+            "description": "Scale each line to fill the print width exactly"
+          },
+          "sideways": {
+            "type": "boolean",
+            "description": "Print along the strip (a banner); fills the width unless height is set"
+          },
+          "align": {
+            "$ref": "#/components/schemas/Align"
+          }
+        }
+      },
+      "RuleBlock": {
+        "type": "object",
+        "description": "A full-width line of a repeated character.",
+        "required": [
+          "type"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "rule"
+          },
+          "char": {
+            "type": "string",
+            "default": "-",
+            "description": "Character or pattern, e.g. \"=\" or \"- \""
+          },
+          "size": {
+            "$ref": "#/components/schemas/Size"
+          }
+        }
+      },
+      "RowBlock": {
+        "type": "object",
+        "description": "Left and right text on one line with a fill between: \"Milk ....... 2\".",
+        "required": [
+          "type",
+          "left",
+          "right"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "row"
+          },
+          "left": {
+            "type": "string"
+          },
+          "right": {
+            "type": "string"
+          },
+          "fill": {
+            "type": "string",
+            "default": " "
+          },
+          "size": {
+            "$ref": "#/components/schemas/Size"
+          },
+          "bold": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SpaceBlock": {
+        "type": "object",
+        "description": "Vertical space. Default one line.",
+        "required": [
+          "type"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "space"
+          },
+          "lines": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "mm": {
+            "type": "number"
+          }
+        }
+      },
+      "BarcodeBlock": {
+        "type": "object",
+        "description": "A 1D barcode drawn by the printer. Empty data skips the block.",
+        "required": [
+          "type",
+          "data"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "barcode"
+          },
+          "data": {
+            "type": "string"
+          },
+          "symbology": {
+            "type": "string",
+            "enum": [
+              "CODE128",
+              "CODE39",
+              "EAN13",
+              "EAN8",
+              "UPC_A",
+              "UPC_E",
+              "ITF",
+              "CODABAR"
+            ],
+            "default": "CODE128"
+          },
+          "height": {
+            "type": "number",
+            "description": "Bar height in mm (default 10)"
+          },
+          "module": {
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 6,
+            "default": 3,
+            "description": "Narrow bar width in dots; reduced to fit"
+          },
+          "hri": {
+            "type": "string",
+            "enum": [
+              "none",
+              "above",
+              "below",
+              "both"
+            ],
+            "default": "below",
+            "description": "Human-readable text"
+          },
+          "align": {
+            "$ref": "#/components/schemas/Align"
+          }
+        }
+      },
+      "QrBlock": {
+        "type": "object",
+        "description": "A QR code drawn by the printer. Empty data skips the block.",
+        "required": [
+          "type",
+          "data"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "qr"
+          },
+          "data": {
+            "type": "string"
+          },
+          "module": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 16,
+            "default": 6,
+            "description": "Dots per module; reduced to fit"
+          },
+          "ec": {
+            "type": "string",
+            "enum": [
+              "L",
+              "M",
+              "Q",
+              "H"
+            ],
+            "default": "M"
+          },
+          "align": {
+            "$ref": "#/components/schemas/Align"
+          }
+        }
+      },
+      "ImageBlock": {
+        "type": "object",
+        "description": "A PNG or JPEG, converted to 1-bit. Over HTTP only `base64` is accepted.",
+        "required": [
+          "type"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "image"
+          },
+          "base64": {
+            "type": "string",
+            "description": "Base64 PNG/JPEG; a data URL prefix is fine"
+          },
+          "path": {
+            "type": "string",
+            "description": "File path (CLI only)"
+          },
+          "width": {
+            "description": "Width in dots (8 per mm), or \"full\". Default the image's own width, capped at the stock.",
+            "oneOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "const": "full"
+              }
+            ]
+          },
+          "align": {
+            "$ref": "#/components/schemas/Align"
+          },
+          "dither": {
+            "type": "boolean",
+            "description": "Floyd-Steinberg dithering for photographs"
+          }
+        }
+      },
+      "CutBlock": {
+        "type": "object",
+        "description": "Feed and cut mid-job, to print several labels in one job.",
+        "required": [
+          "type"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "cut"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "partial",
+              "full"
+            ],
+            "default": "partial"
+          }
+        }
+      },
+      "EachBlock": {
+        "type": "object",
+        "description": "Template loop: repeats `blocks` once per item of `items`, with\n`{{<as>}}` (default `{{item}}`) and `{{index}}` (1-based) set.\nObject items expose fields: `{{item.qty}}`.\n",
+        "required": [
+          "type",
+          "items",
+          "blocks"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "each"
+          },
+          "items": {
+            "description": "An array, or a placeholder for one: \"{{items}}\". A newline-separated string also works.",
+            "oneOf": [
+              {
+                "type": "array"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "as": {
+            "type": "string",
+            "default": "item"
+          },
+          "blocks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Block"
+            }
+          }
+        }
+      }
+    }
+  }
+}

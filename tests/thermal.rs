@@ -357,16 +357,15 @@ fn plugin_bundle_meets_directory_limits() {
     let mut files = Vec::new();
     walk(&root, &mut files);
     assert!(files.len() <= 512);
-    // Directory pre-submission checklist: a file of 5 MiB or more stops
-    // validation. Other non-image files over 256 KiB, and compiled executables,
-    // are held for a reviewer; only the bundled binaries in libexec/ may do that.
-    let libexec = root.join("libexec");
+    // Directory pre-submission checklist: non-image files over 256 KiB, and
+    // compiled executables, are held for a reviewer. The plugin ships Python
+    // source only, so nothing may come near that.
     for f in &files {
-        let len = std::fs::metadata(f).unwrap().len();
-        assert!(len < 5 * 1024 * 1024, "{} is {len} bytes", f.display());
-        if !f.starts_with(&libexec) {
-            assert!(len < 256 * 1024, "{} is {len} bytes", f.display());
+        if f.components().any(|c| c.as_os_str() == "__pycache__") {
+            continue;
         }
+        let len = std::fs::metadata(f).unwrap().len();
+        assert!(len < 256 * 1024, "{} is {len} bytes", f.display());
         assert_ne!(f.file_name().unwrap(), ".DS_Store");
     }
     let manifest: Value = serde_json::from_str(&std::fs::read_to_string(root.join(".claude-plugin/plugin.json")).unwrap()).unwrap();

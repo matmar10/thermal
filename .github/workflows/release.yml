@@ -1,14 +1,13 @@
 # Releases are cut by a version bump on main, never by pushing a tag by hand:
-# `make release VERSION=X.Y.Z` bumps Cargo.toml and plugin.json and pushes.
-# When main's version has no release yet, this workflow builds every
-# platform's binary, publishes them with SHA256SUMS under tag vX.Y.Z (created
-# here, on the commit that was built), and the vendor job commits them to main
-# in plugin/libexec/ with plugin/checksums.txt so the plugin ships them.
+# `make release VERSION=X.Y.Z` bumps Cargo.toml, plugin.json and the Python
+# package and pushes. When main's version has no release yet, this workflow
+# tags vX.Y.Z on that commit and publishes release notes. The plugin ships
+# its Python source as is, so there is nothing to build or vendor.
 name: release
 on:
   push:
     branches: [main]
-    paths: [Cargo.toml, plugin/.claude-plugin/plugin.json]
+    paths: [Cargo.toml, plugin/.claude-plugin/plugin.json, plugin/thermal/__init__.py]
   workflow_dispatch:
 permissions:
   contents: write
@@ -16,23 +15,24 @@ concurrency:
   group: release
   cancel-in-progress: false
 jobs:
-  # Decide before building anything: is there a new, consistent version?
-  check:
+  release:
     runs-on: ubuntu-latest
-    outputs:
-      release: ${{ steps.v.outputs.release }}
-      tag: ${{ steps.v.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - id: v
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Versions agree
+        id: v
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           v=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n 1)
           p=$(sed -n 's/^ *"version": *"\([^"]*\)".*/\1/p' plugin/.claude-plugin/plugin.json | head -n 1)
-          [ "$v" = "$p" ] || { echo "::error::Cargo.toml is $v but plugin.json is $p; bump both (make release VERSION=X.Y.Z)"; exit 1; }
+          y=$(sed -n 's/^__version__ = "\(.*\)"/\1/p' plugin/thermal/__init__.py | head -n 1)
+          [ "$v" = "$p" ] && [ "$p" = "$y" ] || { echo "::error::Cargo.toml is $v, plugin.json is $p, plugin/thermal/__init__.py is $y; bump all three (make release VERSION=X.Y.Z)"; exit 1; }
           tag="v$v"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           if gh release view "$tag" >/dev/null 2>&1; then
@@ -45,76 +45,11 @@ jobs:
             [ "$at" = "$GITHUB_SHA" ] || { echo "::error::tag $tag already exists at $at, not at this commit $GITHUB_SHA. Tags are created by this workflow; delete the stray one (git push origin :refs/tags/$tag) and re-run."; exit 1; }
           fi
           echo "release=true" >> "$GITHUB_OUTPUT"
-  build:
-    needs: check
-    if: needs.check.outputs.release == 'true'
-    strategy:
-      matrix:
-        include:
-          - { os: macos-14, target: aarch64-apple-darwin, asset: print-to-thermal-darwin-arm64 }
-          - { os: macos-14, target: x86_64-apple-darwin, asset: print-to-thermal-darwin-x86_64 }
-          - { os: ubuntu-latest, target: x86_64-unknown-linux-musl, asset: print-to-thermal-linux-x86_64 }
-          - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-musl, asset: print-to-thermal-linux-arm64 }
-          - { os: windows-latest, target: x86_64-pc-windows-msvc, asset: print-to-thermal-windows-x86_64.exe }
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
-      - if: contains(matrix.target, 'musl')
-        run: sudo apt-get update && sudo apt-get install -y musl-tools
-      - run: cargo test --release
-        if: "!contains(matrix.target, 'x86_64-apple')"
-      - run: cargo build --release --target ${{ matrix.target }}
-      - shell: bash
-        run: |
-          src=target/${{ matrix.target }}/release/print-to-thermal
-          [ -f "$src.exe" ] && src="$src.exe"
-          mkdir -p dist && cp "$src" "dist/${{ matrix.asset }}"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.asset }}
-          path: dist/${{ matrix.asset }}
-  publish:
-    needs: [check, build]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          path: dist
-          merge-multiple: true
-      - run: cd dist && sha256sum print-to-thermal-* > SHA256SUMS && cat SHA256SUMS
-      # Creates the tag on exactly the commit that was built.
-      - env:
+      - if: steps.v.outputs.release == 'true'
+        run: python -m unittest discover -s tests
+      # Creates the tag on exactly the commit that was tested.
+      - if: steps.v.outputs.release == 'true'
+        env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ needs.check.outputs.tag }}
-        run: gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$TAG" --generate-notes
-  # Bundle the released binaries into the plugin on main (what `make vendor` does).
-  vendor:
-    needs: [check, publish]
-    runs-on: ubuntu-latest
-    env:
-      TAG: ${{ needs.check.outputs.tag }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-      - env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          rm -rf plugin/libexec && mkdir -p plugin/libexec
-          gh release download "$TAG" --dir plugin/libexec --pattern 'print-to-thermal-*' --pattern SHA256SUMS
-          (cd plugin/libexec && sha256sum -c SHA256SUMS)
-          printf '# sha256  binary in libexec/ for %s, from the release SHA256SUMS (`make vendor`)\n' "$TAG" > plugin/checksums.txt
-          cat plugin/libexec/SHA256SUMS >> plugin/checksums.txt && rm plugin/libexec/SHA256SUMS
-          chmod +x plugin/libexec/print-to-thermal-*
-      - name: Commit to main
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add plugin/libexec plugin/checksums.txt
-          if git diff --cached --quiet; then echo "already vendored"; exit 0; fi
-          git commit -m "Vendor $TAG binaries into the plugin"
-          git pull --rebase origin main
-          git push origin HEAD:main
+          TAG: ${{ steps.v.outputs.tag }}
+        run: gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$TAG" --generate-notes

@@ -88,18 +88,19 @@ your expensive sticky-label stock by accident.
 - **Printers:** most ESC/POS printers, including the Epson TM series and the
   many 58mm and 80mm models from Xprinter, Rongta, Munbyn, HOIN, Milestone and
   others. Star printers that only speak StarPRNT are not supported.
-- **Connections:** network (`tcp://ip:9100`), USB through CUPS, or a Linux
-  device such as `/dev/usb/lp0`.
-- **Computers:** macOS (Apple Silicon and Intel), Linux (x86_64 and arm64,
-  including Raspberry Pi), and Windows (network printers).
+- **Connections:** network (`tcp://ip:9100`), USB through CUPS on macOS and
+  Linux, a Windows printer queue (`win32:<printer>`), or a device such as
+  `/dev/usb/lp0`.
+- **Computers:** anything with Python 3.9 or newer: macOS, Linux (including
+  Raspberry Pi) and Windows. Nothing else to install.
 
 Got a printer working that isn't listed? [Open an issue](https://github.com/matmar10/thermal/issues/new)
 so others know it works.
 
 ## Not using Claude Code? It's a CLI and an HTTP API too
 
-The plugin is a thin layer over `print-to-thermal`, a single Rust binary you
-can script directly or run as a service.
+The plugin is a thin layer over `print-to-thermal`, a small Python program
+(standard library only) you can script directly or run as a service.
 
 ```sh
 print-to-thermal print shopping-list --set items='["Milk","Eggs","Bread"]'
@@ -107,7 +108,7 @@ print-to-thermal serve          # HTTP API on :8631, Swagger UI at /docs
 ```
 
 - **CLI:** `print-to-thermal help`. Setup is `discover`, then `setup`, then `calibrate`.
-- **HTTP API:** OpenAPI 3.1 spec in [`openapi.yaml`](openapi.yaml), with
+- **HTTP API:** OpenAPI 3.1 spec in [`openapi.yaml`](plugin/thermal/openapi.yaml), with
   optional token auth and an IP allowlist. Good for Home Assistant, Shortcuts,
   cron jobs or a Raspberry Pi next to the printer.
   [`docs/thermal.plist`](docs/thermal.plist) runs it as a macOS LaunchAgent.
@@ -128,10 +129,9 @@ flowchart LR
 
 - **Collects nothing.** Print jobs go only to the printer you configure. See
   the [privacy policy](PRIVACY.md).
-- **Nothing downloaded at run time.** The `print-to-thermal` binaries ship
-  inside the plugin, copied from this repo's GitHub release and checked against
-  its SHA-256 sums (listed in `plugin/checksums.txt`). Or build it yourself and
-  set `THERMAL_BIN`.
+- **Nothing downloaded, nothing compiled.** `print-to-thermal` ships inside
+  the plugin as readable Python source in `plugin/thermal/`, using only the
+  standard library. You can read every line that runs.
 - **Your settings survive updates.** They live in `~/.config/thermal/`, not in
   the plugin.
 

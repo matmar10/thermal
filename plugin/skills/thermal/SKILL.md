@@ -6,8 +6,10 @@ allowed-tools: Bash(print-to-thermal *)
 
 # Thermal printer
 
-`print-to-thermal` is on PATH while this plugin is enabled: one self-contained binary,
-bundled with the plugin. It keeps the user's printer
+`print-to-thermal` is on PATH while this plugin is enabled: a small Python program
+bundled with the plugin (standard library only). It needs Python 3.9 or newer; if it
+says Python is missing, help the user install it from python.org, or point
+`THERMAL_PYTHON` at an existing one. It keeps the user's printer
 settings and templates in `~/.config/thermal/` (or `$THERMAL_HOME`), so plugin
 updates never lose them. (It is not called `thermal` because macOS ships an
 unrelated `/usr/bin/thermal` that would shadow it.)
@@ -22,7 +24,7 @@ printer up before printing anything. Take it a step at a time with the user:
 
 1. **How is it connected?** If a connection was entered at install (above),
    use it and skip to step 2. Otherwise: network (Wi-Fi/Ethernet) or USB. Run
-   `print-to-thermal discover` to list CUPS queues and USB/serial devices. Office laser
+   `print-to-thermal discover` to list CUPS queues, Windows printers and USB/serial devices. Office laser
    and inkjet printers show up too: ask which one is the receipt printer, and
    never send to one of those. For a
    network printer, ask for its IP (often on a self-test page: hold FEED
@@ -30,6 +32,7 @@ printer up before printing anything. Take it a step at a time with the user:
    look for port 9100 on the local network. The connection is one of:
    - `tcp://<ip>:9100`: a network printer
    - `cups:<queue>`: a USB printer added to CUPS (macOS/Linux) as a raw queue
+   - `win32:<printer name>`: a USB printer installed in Windows (sent raw through the spooler)
    - `/dev/usb/lp0` or a serial device: a USB printer on Linux
 2. **Which model?** Run `print-to-thermal models` and pick the closest preset. Most
    clones are `generic-80mm` or `generic-58mm`.

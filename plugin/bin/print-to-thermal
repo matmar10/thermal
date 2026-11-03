@@ -1,41 +1,30 @@
 #!/bin/sh
-# Runs the native `print-to-thermal` binary for this machine. The binaries for
-# every supported platform ship inside the plugin, in ../libexec/; their SHA-256
-# sums are in ../checksums.txt. It needs no network access.
+# Runs print-to-thermal: the Python package in ../thermal/, standard library
+# only, so any Python 3.9 or newer will do. Nothing is downloaded or installed.
 # Source: https://github.com/matmar10/thermal
 set -eu
 
 here=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 root=$(dirname -- "$here")
 
-# A locally built binary, for development.
-if [ -n "${THERMAL_BIN:-}" ]; then
-  exec "$THERMAL_BIN" "$@"
+# THERMAL_PYTHON picks the interpreter; otherwise the first Python 3.9+ found.
+ok() {
+  "$@" -c 'import sys; sys.exit(sys.version_info < (3, 9))' >/dev/null 2>&1
+}
+if [ -n "${THERMAL_PYTHON:-}" ]; then
+  py=$THERMAL_PYTHON
+elif ok python3; then
+  py=python3
+elif ok python; then
+  py=python
+elif ok py -3; then
+  py="py -3"
+else
+  echo "print-to-thermal: needs Python 3.9 or newer (python3, python or py -3 on PATH, or set THERMAL_PYTHON)" >&2
+  exit 1
 fi
 
-die() {
-  echo "print-to-thermal: $*" >&2
-  exit 1
-}
-
-src="build from source: https://github.com/matmar10/thermal"
-case "$(uname -s)" in
-  Darwin) os=darwin ;;
-  Linux) os=linux ;;
-  MINGW* | MSYS* | CYGWIN*) os=windows ;;
-  *) die "no prebuilt binary for $(uname -s); $src" ;;
-esac
-case "$(uname -m)" in
-  arm64 | aarch64) arch=arm64 ;;
-  x86_64 | amd64) arch=x86_64 ;;
-  *) die "no prebuilt binary for $(uname -m); $src" ;;
-esac
-asset="print-to-thermal-$os-$arch"
-[ "$os" = windows ] && asset="$asset.exe"
-
-bin="$root/libexec/$asset"
-[ -f "$bin" ] || die "no bundled binary $asset in this plugin; $src"
-# Plugin installs may not preserve the executable bit.
-[ -x "$bin" ] || chmod +x "$bin" 2>/dev/null || true
-
-exec "$bin" "$@"
+# The plugin directory goes first on sys.path, so this copy of the package is
+# the one imported. -B: never write bytecode caches into the plugin directory.
+# shellcheck disable=SC2086 # "py -3" is two words on purpose
+exec $py -B -c 'import sys; sys.path.insert(0, sys.argv.pop(1)); from thermal.cli import main; sys.exit(main())' "$root" "$@"

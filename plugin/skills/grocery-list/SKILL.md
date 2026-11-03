@@ -98,8 +98,8 @@ step when they've said to just print it.
 ## 5. Print
 
 Compose the job yourself from the printer's primitives (the `thermal` skill
-lists them all). There is no grocery template in the binary, on purpose: the
-layout lives here, so it can change without a new binary release. The layout:
+lists them all). There is no grocery template in `print-to-thermal`, on purpose:
+the layout lives here, so it can change without touching the program. The layout:
 
 - a `big` title (keep it short: "Groceries", the store name, "Sunday dinner"),
 - a centred `text` line naming the dishes, shortened to one line if possible,
