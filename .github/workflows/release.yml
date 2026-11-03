@@ -1,6 +1,7 @@
 # Tag vX.Y.Z (matching Cargo.toml and plugin/.claude-plugin/plugin.json) to
-# build every platform's binary and publish them with SHA256SUMS. Then run
-# `make checksums` and commit plugin/checksums.txt so the launcher can verify them.
+# build every platform's binary and publish them with SHA256SUMS. The vendor
+# job then commits them to main in plugin/libexec/, with plugin/checksums.txt,
+# so the plugin ships the new binaries.
 name: release
 on:
   push:
@@ -55,3 +56,29 @@ jobs:
       - env:
           GH_TOKEN: ${{ github.token }}
         run: gh release create "$GITHUB_REF_NAME" dist/* --title "$GITHUB_REF_NAME" --generate-notes
+  # Bundle the released binaries into the plugin on main (what `make vendor` does).
+  vendor:
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          rm -rf plugin/libexec && mkdir -p plugin/libexec
+          gh release download "$GITHUB_REF_NAME" --dir plugin/libexec --pattern 'print-to-thermal-*' --pattern SHA256SUMS
+          (cd plugin/libexec && sha256sum -c SHA256SUMS)
+          printf '# sha256  binary in libexec/ for %s, from the release SHA256SUMS (`make vendor`)\n' "$GITHUB_REF_NAME" > plugin/checksums.txt
+          cat plugin/libexec/SHA256SUMS >> plugin/checksums.txt && rm plugin/libexec/SHA256SUMS
+          chmod +x plugin/libexec/print-to-thermal-*
+      - name: Commit to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add plugin/libexec plugin/checksums.txt
+          if git diff --cached --quiet; then echo "already vendored"; exit 0; fi
+          git commit -m "Vendor $GITHUB_REF_NAME binaries into the plugin"
+          git pull --rebase origin main
+          git push origin HEAD:main

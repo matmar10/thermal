@@ -7,7 +7,7 @@ allowed-tools: Bash(print-to-thermal *)
 # Thermal printer
 
 `print-to-thermal` is on PATH while this plugin is enabled: one self-contained binary,
-fetched and checksum-verified on first use. It keeps the user's printer
+bundled with the plugin. It keeps the user's printer
 settings and templates in `~/.config/thermal/` (or `$THERMAL_HOME`), so plugin
 updates never lose them. (It is not called `thermal` because macOS ships an
 unrelated `/usr/bin/thermal` that would shadow it.)

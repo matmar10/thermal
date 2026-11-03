@@ -1,11 +1,10 @@
 #!/bin/sh
-# Runs the native `print-to-thermal` binary for this machine. The first run downloads
-# it from the GitHub release matching this plugin's version and checks it
-# against the SHA-256 pinned in ../checksums.txt; it is never run unchecked.
+# Runs the native `print-to-thermal` binary for this machine. The binaries for
+# every supported platform ship inside the plugin, in ../libexec/; their SHA-256
+# sums are in ../checksums.txt. It needs no network access.
 # Source: https://github.com/matmar10/thermal
 set -eu
 
-REPO=matmar10/thermal
 here=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 root=$(dirname -- "$here")
 
@@ -19,44 +18,24 @@ die() {
   exit 1
 }
 
-version=$(sed -n 's/^ *"version": *"\([^"]*\)".*/\1/p' "$root/.claude-plugin/plugin.json" | head -n 1)
-[ -n "$version" ] || die "cannot read the plugin version"
-
+src="build from source: https://github.com/matmar10/thermal"
 case "$(uname -s)" in
   Darwin) os=darwin ;;
   Linux) os=linux ;;
   MINGW* | MSYS* | CYGWIN*) os=windows ;;
-  *) die "no prebuilt binary for $(uname -s); build from source: https://github.com/$REPO" ;;
+  *) die "no prebuilt binary for $(uname -s); $src" ;;
 esac
 case "$(uname -m)" in
   arm64 | aarch64) arch=arm64 ;;
   x86_64 | amd64) arch=x86_64 ;;
-  *) die "no prebuilt binary for $(uname -m); build from source: https://github.com/$REPO" ;;
+  *) die "no prebuilt binary for $(uname -m); $src" ;;
 esac
 asset="print-to-thermal-$os-$arch"
 [ "$os" = windows ] && asset="$asset.exe"
 
-data="${CLAUDE_PLUGIN_DATA:-${XDG_DATA_HOME:-$HOME/.local/share}/thermal}"
-bin="$data/$version/$asset"
-
-if [ ! -x "$bin" ]; then
-  expected=$(awk -v a="$asset" '$2 == a || $2 == "*" a { print $1 }' "$root/checksums.txt" 2>/dev/null)
-  [ -n "$expected" ] || die "no pinned checksum for $asset in version $version"
-  command -v curl >/dev/null 2>&1 || die "curl is needed to fetch the binary once"
-  mkdir -p "$data/$version"
-  tmp="$bin.download.$$"
-  trap 'rm -f "$tmp"' EXIT
-  echo "print-to-thermal: fetching $asset $version (once)..." >&2
-  curl -fsSL --retry 2 -o "$tmp" "https://github.com/$REPO/releases/download/v$version/$asset" || die "download failed"
-  if command -v sha256sum >/dev/null 2>&1; then
-    actual=$(sha256sum "$tmp" | cut -d ' ' -f 1)
-  else
-    actual=$(shasum -a 256 "$tmp" | cut -d ' ' -f 1)
-  fi
-  [ "$actual" = "$expected" ] || die "checksum mismatch for $asset (expected $expected, got $actual); not running it"
-  chmod +x "$tmp"
-  mv "$tmp" "$bin"
-  trap - EXIT
-fi
+bin="$root/libexec/$asset"
+[ -f "$bin" ] || die "no bundled binary $asset in this plugin; $src"
+# Plugin installs may not preserve the executable bit.
+[ -x "$bin" ] || chmod +x "$bin" 2>/dev/null || true
 
 exec "$bin" "$@"

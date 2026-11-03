@@ -1,4 +1,4 @@
-# sha256  asset for v0.1.2, from the release SHA256SUMS (`make checksums`)
+# sha256  binary in libexec/ for v0.1.2, from the release SHA256SUMS (`make vendor`)
 7d717ead51351553f0e4e6039191ab05be5000067e29df32baaf6de2898fd6f2  print-to-thermal-darwin-arm64
 018f2eb5ed12df36c586d44ccb65eee85ac66a9bb6fdf865ad197ad8deb4722b  print-to-thermal-darwin-x86_64
 012a4ee38b18336133b73f27a8a4ec17e4ddfb48ac8530dd563922d84fd01154  print-to-thermal-linux-arm64

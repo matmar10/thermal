@@ -5,7 +5,7 @@ REPO := matmar10/thermal
 target/release/print-to-thermal: $(wildcard src/*.rs) Cargo.toml openapi.yaml assets/font.ttf $(wildcard models/*.json templates/*.json)
 	$(CARGO) build --release
 
-.PHONY: test lint validate checksums dev
+.PHONY: test lint validate vendor dev
 test:
 	$(CARGO) test --release
 
@@ -15,10 +15,15 @@ lint:
 validate:
 	claude plugin validate ./plugin
 
-# After the release workflow has published v$(VERSION): pin its checksums.
-checksums:
-	@printf '# sha256  asset for v%s, from the release SHA256SUMS (`make checksums`)\n' "$(VERSION)" > plugin/checksums.txt
-	gh release download v$(VERSION) --repo $(REPO) --pattern SHA256SUMS --output - >> plugin/checksums.txt
+# After the release workflow has published v$(VERSION): copy its binaries into
+# plugin/libexec/, check them against the release SHA256SUMS, and record the sums.
+vendor:
+	rm -rf plugin/libexec && mkdir -p plugin/libexec
+	gh release download v$(VERSION) --repo $(REPO) --dir plugin/libexec --pattern 'print-to-thermal-*' --pattern SHA256SUMS
+	cd plugin/libexec && shasum -a 256 -c SHA256SUMS
+	@printf '# sha256  binary in libexec/ for v%s, from the release SHA256SUMS (`make vendor`)\n' "$(VERSION)" > plugin/checksums.txt
+	cat plugin/libexec/SHA256SUMS >> plugin/checksums.txt && rm plugin/libexec/SHA256SUMS
+	chmod +x plugin/libexec/print-to-thermal-*
 	cat plugin/checksums.txt
 
 # Run Claude with the plugin from this checkout and the locally built binary.
