@@ -134,6 +134,8 @@ loops over a list:
 ```
 
 Built in: `shopping-list`, `folder-tab`, `item-label`, `note`, `day`.
+For folder labels of a given size, or a batch of them, use the `folder-labels`
+skill instead of the `folder-tab` template.
 `print-to-thermal templates` lists them with the user's own; `print-to-thermal templates <name>`
 shows one. Save a template in `~/.config/thermal/templates/<name>.json` (a
 user template replaces a built-in one of the same name).

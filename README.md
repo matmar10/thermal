@@ -49,7 +49,7 @@ which rolls you own. You do this once.
 | 🛒 **Shopping & to-do lists** | "print my shopping list for Saturday", "print today's errands with checkboxes" |
 | 🥕 **Grocery lists from recipes** | "make a shopping list for this recipe: https://…", "print what I need for these three dinners" — merged and sorted by store department |
 | 🏷️ **Jar, bin and box labels** | "label the rice jar, filled today", "print labels for the five storage bins in the garage" |
-| 📁 **Folder tabs** | "print folder tabs for 2026 taxes, medical and insurance" |
+| 📁 **Folder labels** | "print folder tabs for 2026 taxes, medical and insurance", "label my manila folders, the labels are 50 × 20 mm" — sized to your label, batches resume after a stock-out |
 | 📅 **Your day** | "print my agenda for tomorrow" (pairs well with a calendar connector) |
 | 📶 **QR codes** | "print the guest Wi-Fi as a QR code", "print a QR code for this link" |
 | 🔢 **Barcodes** | "print a CODE128 barcode for PANTRY-014" |
